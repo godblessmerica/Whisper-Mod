@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "com.whispermod.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "ChatListenerMixin",
+    "ChatScreenMixin",
+    "GuiMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

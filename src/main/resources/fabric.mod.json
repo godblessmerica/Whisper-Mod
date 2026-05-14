@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "whispermod",
+  "version": "${version}",
+  "name": "Whisper Mod",
+  "description": "A better private chat experience — DM players without retyping /w every message.",
+  "authors": ["godblessmerica"],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/whispermod/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.whispermod.WhisperMod"]
+  },
+  "mixins": [
+    {
+      "config": "whispermod.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.2",
+    "minecraft": "~26.1.2",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
