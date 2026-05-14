@@ -1,0 +1,5 @@
+build/
+.gradle/
+.claude/
+run/
+*.class
