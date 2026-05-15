@@ -21,11 +21,19 @@ public class ChatListenerMixin {
     @Inject(method = "handleDisguisedChatMessage", at = @At("HEAD"), cancellable = true)
     private void onDisguisedChatMessage(Component message, ChatType.Bound bound, CallbackInfo ci) {
         String raw = message.getString();
-        String sender = bound.name().getString();
-        // Strip " -> me", " -> you", " -> YOU" etc. suffix if present
-        if (sender.contains(" -> ")) sender = sender.substring(0, sender.indexOf(" -> "));
-        // Strip trailing brackets/parens
-        sender = sender.replaceAll("[\\[\\]()]+$", "").trim();
+        String boundName = bound.name().getString();
+
+        // Detect outgoing echo: bound name contains " -> " meaning we sent this
+        if (boundName.contains(" -> ")) {
+            // This is an outgoing echo — hide WM protocol messages, ignore the rest
+            if (MessageCrypto.isRequest(raw) || MessageCrypto.isDecline(raw)
+                    || MessageCrypto.isKeyExchange(raw) || MessageCrypto.isMessage(raw)) {
+                ci.cancel();
+            }
+            return;
+        }
+
+        String sender = boundName.replaceAll("[\\[\\]()]+$", "").trim();
         handleIncoming(raw, sender, ci);
     }
 
@@ -35,6 +43,18 @@ public class ChatListenerMixin {
         String raw = message.getString();
         String sender = parseSender(raw);
         if (sender == null) return;
+
+        // Ignore outgoing echoes (sender is "me" or our own name)
+        Minecraft mc = Minecraft.getInstance();
+        String localName = mc.player != null ? mc.player.getName().getString() : null;
+        if ("me".equalsIgnoreCase(sender) || (localName != null && localName.equalsIgnoreCase(sender))) {
+            if (MessageCrypto.isRequest(raw) || MessageCrypto.isDecline(raw)
+                    || MessageCrypto.isKeyExchange(raw) || MessageCrypto.isMessage(raw)) {
+                ci.cancel();
+            }
+            return;
+        }
+
         handleIncoming(raw, sender, ci);
     }
 
@@ -72,15 +92,21 @@ public class ChatListenerMixin {
         // --- Key exchange handshake ---
         if (MessageCrypto.isKeyExchange(raw)) {
             String token = MessageCrypto.extractToken(raw, MessageCrypto.KX_PREFIX);
-            if (token == null) return;
+            if (token == null) { ci.cancel(); return; }
             String theirPublicKey = token.substring(MessageCrypto.KX_PREFIX.length());
 
             DmSession session = SessionManager.getOrCreate(sender);
 
+            // Ignore if this key is our own (echo of our own WMKX)
+            if (theirPublicKey.equals(session.getPublicKeyBase64())) {
+                ci.cancel();
+                return;
+            }
+
             if (!session.isReady()) {
                 session.completeExchange(theirPublicKey);
 
-                // If we sent the original request, we need to send our key back too
+                // If we sent the original request, send our key back
                 if (SessionManager.hasOutgoing(sender)) {
                     SessionManager.removeOutgoing(sender);
                     session.markInitiated();
@@ -88,7 +114,6 @@ public class ChatListenerMixin {
                     mc.getConnection().sendUnattendedCommand("w " + sender + " " + kxReply, mc.screen);
                 }
 
-                // Auto-start encrypted chat on both sides once session is ready
                 WhisperMod.setEmTarget(sender);
 
                 mc.player.sendSystemMessage(
