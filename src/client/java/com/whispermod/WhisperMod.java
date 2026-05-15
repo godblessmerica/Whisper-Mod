@@ -51,9 +51,7 @@ public class WhisperMod implements ClientModInitializer {
                     // Track echo so we can cancel it when it comes back
                     trackSent(encrypted);
 
-                    final String encryptedFinal = encrypted;
-                    final String emTargetFinal = emTarget;
-                    mc.execute(() -> mc.getConnection().sendCommand("w " + emTargetFinal + " " + encryptedFinal));
+                    mc.getConnection().sendUnattendedCommand("w " + emTarget + " " + encrypted, mc.screen);
 
                     // Show own message immediately — don't wait for echo
                     String myName = mc.player.getName().getString();
@@ -121,8 +119,7 @@ public class WhisperMod implements ClientModInitializer {
             if (mc.getConnection() != null) {
                 String endMsg = MessageCrypto.END_PREFIX;
                 trackSent(endMsg);
-                final String emTargetFinal = emTarget;
-                mc.execute(() -> mc.getConnection().sendCommand("w " + emTargetFinal + " " + endMsg));
+                mc.getConnection().sendUnattendedCommand("w " + emTarget + " " + endMsg, mc.screen);
             }
             SessionManager.remove(emTarget);
         }
