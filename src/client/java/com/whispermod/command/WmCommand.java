@@ -207,6 +207,22 @@ public class WmCommand {
                                     .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                     .append(Component.literal(". Waiting for them to accept...").withStyle(ChatFormatting.GRAY))
                     );
+
+                    // Time out after 30 seconds if no response
+                    new java.util.Timer().schedule(new java.util.TimerTask() {
+                        @Override
+                        public void run() {
+                            if (SessionManager.hasOutgoing(player)) {
+                                SessionManager.removeOutgoing(player);
+                                mc.execute(() -> mc.player.sendSystemMessage(
+                                        Component.literal("[EM] No response from ").withStyle(ChatFormatting.RED)
+                                                .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
+                                                .append(Component.literal(" — they may not have the mod installed.").withStyle(ChatFormatting.RED))
+                                ));
+                            }
+                        }
+                    }, 30_000);
+
                     return 1;
                 })
         );
