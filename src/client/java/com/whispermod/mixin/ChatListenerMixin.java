@@ -53,17 +53,6 @@ public class ChatListenerMixin {
     @Inject(method = "handleSystemMessage", at = @At("HEAD"), cancellable = true)
     private void onSystemMessage(Component message, boolean overlay, CallbackInfo ci) {
         String raw = message.getString();
-
-        // "You whisper to player: ..." — outgoing echo on some servers
-        if (raw != null && raw.startsWith("You whisper to ")) {
-            if (MessageCrypto.isRequest(raw) || MessageCrypto.isDecline(raw)
-                    || MessageCrypto.isKeyExchange(raw) || MessageCrypto.isEnd(raw)
-                    || MessageCrypto.isMessage(raw)) {
-                ci.cancel();
-            }
-            return;
-        }
-
         String sender = parseSender(raw);
         if (sender == null) return;
 
@@ -188,8 +177,7 @@ public class ChatListenerMixin {
             if (decrypted == null) return;
 
             mc.player.sendSystemMessage(
-                    Component.literal("[EM] ").withStyle(ChatFormatting.GREEN)
-                            .append(Component.literal(sender + ": ").withStyle(ChatFormatting.AQUA))
+                    Component.literal("[EM] " + sender + ": ").withStyle(ChatFormatting.GREEN)
                             .append(Component.literal(decrypted).withStyle(ChatFormatting.WHITE))
             );
             ci.cancel();

@@ -46,6 +46,8 @@ A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm 
 
 > **Note:** Encrypted sessions (`/wm em`) require both players to have the mod installed.
 
+> **Compatibility:** Currently works best on servers running EssentialsX or similar plugins. Vanilla Minecraft whisper format support is planned for a future update.
+
 ## Roadmap
 
 ### ✅ v1.x — Foundation
