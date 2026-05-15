@@ -7,9 +7,7 @@
 [![Platform](https://img.shields.io/badge/platform-Minecraft%2026.1.2-62B47A?style=flat-square)](#)
 [![Mod Loader](https://img.shields.io/badge/mod%20loader-Fabric-DBD0B4?style=flat-square)](https://fabricmc.net)
 [![License](https://img.shields.io/badge/license-MIT-d580ff?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.2.0-00e5ff?style=flat-square)](../../releases/latest)
-[![Modrinth](https://img.shields.io/modrinth/dt/whisper-mod?style=flat-square&logo=modrinth&label=Modrinth&color=00AF5C)](https://modrinth.com/mod/whisper-mod)
-[![CurseForge](https://img.shields.io/curseforge/dt/whisper-mod?style=flat-square&logo=curseforge&label=CurseForge&color=F16436)](https://legacy.curseforge.com/minecraft/mc-mods/whisper-mod)
+[![Version](https://img.shields.io/badge/version-1.3.0-00e5ff?style=flat-square)](../../releases/latest)
 
 A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm dm` for persistent DM sessions or `/wm em` for end-to-end encrypted conversations — no more retyping `/w` every message. Currently supports Minecraft 26.1.2.
 
@@ -26,7 +24,7 @@ A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm 
 
 ## Features
 - `/wm dm <player>` — start a persistent DM session, all messages sent as whispers automatically
-- `/wm em <player>` — start an end-to-end encrypted session, server admins only see gibberish
+- `/wm em <player>` — send an encrypted session request; once accepted, chat starts automatically
 - Switch conversations instantly without retyping anything
 - HUD indicator shows your active session — yellow for DM, green for EM
 - Tab completion suggests online players when typing commands
@@ -38,7 +36,9 @@ A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm 
 | Command | Description |
 |---|---|
 | `/wm dm <player>` | Start or switch unencrypted DM |
-| `/wm em <player>` | Start or switch encrypted DM |
+| `/wm em <player>` | Send an encrypted session request |
+| `/wm em accept <player>` | Accept an incoming encrypted session request |
+| `/wm em decline <player>` | Decline an incoming encrypted session request |
 | `/wm back` | Return to public chat from anywhere |
 | `/wm help` | List all commands |
 
@@ -46,13 +46,12 @@ A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm 
 
 > **Note:** Encrypted sessions (`/wm em`) require both players to have the mod installed.
 
-## What's New in v1.2.0
-- All commands now under `/wm` — type `/wm help` for a full list
-- `/whispermod` also works as an alias for `/wm`
-- Chat input shows `[DM to player]` or `[EM to player]` prefix when in a session
-- Removing or replacing the prefix automatically returns you to public chat
-- Added `← Back` button in the chat UI when in a session
-- Chat now shows `Public Chat` label when no session is active
+## What's New in v1.3.0
+- **Accept/Decline system** — `/wm em <player>` now sends a session request instead of immediately starting key exchange
+- **Auto-start encrypted chat** — once both sides complete the key exchange, encrypted chat opens automatically on both ends
+- **Fixed encrypted session not establishing** — key exchange now works correctly in Minecraft 26.1.2
+- **Fixed empty message sending** — pressing Enter with nothing typed no longer sends the chat prefix as a whisper
+- **Fixed HUD overlap** — the chat mode label no longer covers incoming chat messages
 
 ## Roadmap
 
@@ -69,6 +68,14 @@ A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm 
 - [x] Removing or replacing prefix returns to public chat
 - [x] `← Back` button in chat UI
 - [x] `Public Chat` label when no session is active
+
+### v1.3.0 — Session Requests ✅
+- [x] Accept/decline system for encrypted session requests
+- [x] `/wm em <player>` sends a request instead of immediately starting key exchange
+- [x] Encrypted chat auto-starts on both ends once key exchange completes
+- [x] Fixed key exchange not working in Minecraft 26.1.2
+- [x] Fixed empty prefix being sent as a whisper
+- [x] Fixed HUD label overlapping chat messages
 
 ### v2.0.0 — Tabbed Chat
 - [ ] Separate chat tabs for public chat and each DM conversation
