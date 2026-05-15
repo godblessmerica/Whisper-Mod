@@ -56,8 +56,7 @@ public class WhisperMod implements ClientModInitializer {
                     // Show own message immediately — don't wait for echo
                     String myName = mc.player.getName().getString();
                     mc.player.sendSystemMessage(
-                            Component.literal("[EM] ").withStyle(ChatFormatting.GREEN)
-                                    .append(Component.literal(myName + ": ").withStyle(ChatFormatting.AQUA))
+                            Component.literal("[EM] " + myName + ": ").withStyle(ChatFormatting.GREEN)
                                     .append(Component.literal(text).withStyle(ChatFormatting.WHITE))
                     );
                 } else {
@@ -75,9 +74,7 @@ public class WhisperMod implements ClientModInitializer {
                 text = text.trim();
                 if (text.isEmpty()) return false;
 
-                final String target = dmTarget;
-                final String finalText = text;
-                mc.execute(() -> mc.getConnection().sendCommand("w " + target + " " + finalText));
+                mc.getConnection().sendUnattendedCommand("w " + dmTarget + " " + text, mc.screen);
                 return false;
             }
 
