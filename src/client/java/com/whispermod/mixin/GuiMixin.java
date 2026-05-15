@@ -23,28 +23,7 @@ public class GuiMixin {
         if (mc.options.hideGui) return;
         if (!(mc.screen instanceof ChatScreen)) return;
 
-        String dmTarget = WhisperMod.getDmTarget();
-        String emTarget = WhisperMod.getEmTarget();
-
-        MutableComponent label;
-
-        if (emTarget != null) {
-            // encrypted session — green for secure
-            label = Component.literal("[EM] ").withStyle(ChatFormatting.GREEN)
-                    .append(Component.literal(emTarget).withStyle(ChatFormatting.AQUA));
-        } else if (dmTarget != null) {
-            // unencrypted session — yellow for casual
-            label = Component.literal("[DM] ").withStyle(ChatFormatting.YELLOW)
-                    .append(Component.literal(dmTarget).withStyle(ChatFormatting.AQUA));
-        } else {
-            return;
-        }
-
-        int x = 4;
-        int y = graphics.guiHeight() - 36;
-        int w = mc.font.width(label.getString());
-
-        graphics.fill(x - 2, y - 2, x + w + 2, y + 11, 0x40000000);
-        graphics.text(mc.font, label, x, y, -1, true);
+        // Label is rendered directly in ChatScreenMixin — nothing to do here
+        // This mixin is kept for future HUD additions outside the chat screen
     }
 }
