@@ -28,7 +28,8 @@ public class WhisperMod implements ClientModInitializer {
                 // strip prefix if present
                 String prefix = "[EM to " + emTarget + "] ";
                 String text = message.startsWith(prefix) ? message.substring(prefix.length()) : message;
-                if (text.isEmpty()) return false;
+                text = text.trim();
+                if (text.isEmpty() || text.equals(prefix.trim())) return false;
 
                 if (SessionManager.isReady(emTarget)) {
                     byte[] key = SessionManager.get(emTarget).getSharedKey();
@@ -47,7 +48,8 @@ public class WhisperMod implements ClientModInitializer {
                 // strip prefix if present
                 String prefix = "[DM to " + dmTarget + "] ";
                 String text = message.startsWith(prefix) ? message.substring(prefix.length()) : message;
-                if (text.isEmpty()) return false;
+                text = text.trim();
+                if (text.isEmpty() || text.equals(prefix.trim())) return false;
 
                 mc.getConnection().sendUnattendedCommand("w " + dmTarget + " " + text, mc.screen);
                 return false;
@@ -81,5 +83,12 @@ public class WhisperMod implements ClientModInitializer {
     public static void exitAll() {
         dmTarget = null;
         emTarget = null;
+    }
+
+    /** Returns the plain text prefix shown in the chat input, or null if no session is active. */
+    public static String getChatPrefix() {
+        if (dmTarget != null) return "[DM to " + dmTarget + "] ";
+        if (emTarget != null) return "[EM to " + emTarget + "] ";
+        return null;
     }
 }

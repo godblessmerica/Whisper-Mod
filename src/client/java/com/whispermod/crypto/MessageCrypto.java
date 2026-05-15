@@ -9,8 +9,10 @@ import java.util.Base64;
 
 public class MessageCrypto {
 
-    public static final String MSG_PREFIX = "WM:";
-    public static final String KX_PREFIX  = "WMKX:";
+    public static final String MSG_PREFIX  = "WM:";
+    public static final String KX_PREFIX   = "WMKX:";
+    public static final String REQ_PREFIX  = "WMREQ:";
+    public static final String DECL_PREFIX = "WMDECL:";
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -58,6 +60,14 @@ public class MessageCrypto {
 
     public static boolean isKeyExchange(String text) {
         return text != null && text.contains(KX_PREFIX);
+    }
+
+    public static boolean isRequest(String text) {
+        return text != null && text.contains(REQ_PREFIX);
+    }
+
+    public static boolean isDecline(String text) {
+        return text != null && text.contains(DECL_PREFIX);
     }
 
     /**
