@@ -137,7 +137,7 @@ public class WmCommand {
                             // Send our public key to initiate key exchange
                             DmSession session = SessionManager.getOrCreate(player);
                             String kxMessage = MessageCrypto.KX_PREFIX + session.getPublicKeyBase64();
-                            mc.getConnection().sendCommand("w " + player + " " + kxMessage);
+                            mc.getConnection().sendUnattendedCommand("w " + player + " " + kxMessage, mc.screen);
 
                             ctx.getSource().sendFeedback(
                                     Component.literal("[EM] Accepted. Establishing secure session with ")
@@ -168,7 +168,7 @@ public class WmCommand {
                             }
 
                             SessionManager.removeIncoming(player);
-                            mc.getConnection().sendCommand("w " + player + " " + MessageCrypto.DECL_PREFIX);
+                            mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.DECL_PREFIX, mc.screen);
 
                             ctx.getSource().sendFeedback(
                                     Component.literal("[EM] Declined request from ")
@@ -199,7 +199,7 @@ public class WmCommand {
 
                     // Send encrypted session request
                     SessionManager.addOutgoing(player);
-                    mc.getConnection().sendCommand("w " + player + " " + MessageCrypto.REQ_PREFIX);
+                    mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.REQ_PREFIX, mc.screen);
 
                     ctx.getSource().sendFeedback(
                             Component.literal("[EM] Encrypted session request sent to ")
