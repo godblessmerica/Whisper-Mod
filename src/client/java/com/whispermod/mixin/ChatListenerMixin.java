@@ -22,6 +22,8 @@ public class ChatListenerMixin {
     private void onDisguisedChatMessage(Component message, ChatType.Bound bound, CallbackInfo ci) {
         String raw = message.getString();
         String sender = bound.name().getString();
+        // Strip " -> me" or " -> you" suffix if present
+        if (sender.contains(" -> ")) sender = sender.substring(0, sender.indexOf(" -> "));
         handleIncoming(raw, sender, ci);
     }
 
@@ -119,8 +121,16 @@ public class ChatListenerMixin {
     }
 
     private static String parseSender(String raw) {
+        // "player whispers to you: message"
         int idx = raw.indexOf(" whispers to you: ");
         if (idx > 0) return raw.substring(0, idx);
+
+        // "[player -> me] message" format used by some servers
+        if (raw.startsWith("[")) {
+            int arrowIdx = raw.indexOf(" -> ");
+            if (arrowIdx > 0) return raw.substring(1, arrowIdx);
+        }
+
         return null;
     }
 }
