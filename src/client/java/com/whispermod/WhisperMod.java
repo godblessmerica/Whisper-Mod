@@ -79,8 +79,19 @@ public class WhisperMod implements ClientModInitializer {
         return emTarget;
     }
 
+    // --- Exit without notifying the other player (used when receiving WMEND) ---
+    public static void exitAllSilent() {
+        dmTarget = null;
+        emTarget = null;
+    }
+
     // --- /back — exit everything ---
     public static void exitAll() {
+        Minecraft mc = Minecraft.getInstance();
+        // If in an EM session, notify the other player
+        if (emTarget != null && mc.getConnection() != null) {
+            mc.getConnection().sendUnattendedCommand("w " + emTarget + " " + MessageCrypto.END_PREFIX, mc.screen);
+        }
         dmTarget = null;
         emTarget = null;
     }

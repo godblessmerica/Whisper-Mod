@@ -25,9 +25,33 @@ public class ChatListenerMixin {
 
         // Detect outgoing echo: bound name contains " -> " meaning we sent this
         if (boundName.contains(" -> ")) {
-            // This is an outgoing echo — hide WM protocol messages, ignore the rest
+            // Extract recipient name (after " -> ")
+            String recipient = boundName.substring(boundName.indexOf(" -> ") + 4).replaceAll("[\\[\\]()]+$", "").trim();
+
+            // Show our own encrypted messages decrypted
+            if (MessageCrypto.isMessage(raw)) {
+                DmSession session = SessionManager.get(recipient);
+                if (session != null && session.isReady()) {
+                    String token = MessageCrypto.extractToken(raw, MessageCrypto.MSG_PREFIX);
+                    if (token != null) {
+                        String decrypted = MessageCrypto.decrypt(session.getSharedKey(), token);
+                        if (decrypted != null) {
+                            Minecraft mc = Minecraft.getInstance();
+                            String myName = mc.player != null ? mc.player.getName().getString() : "me";
+                            mc.player.sendSystemMessage(
+                                    Component.literal("[EM] " + myName + ": ").withStyle(ChatFormatting.GREEN)
+                                            .append(Component.literal(decrypted).withStyle(ChatFormatting.WHITE))
+                            );
+                        }
+                    }
+                }
+                ci.cancel();
+                return;
+            }
+
+            // Hide all other outgoing WM protocol echoes
             if (MessageCrypto.isRequest(raw) || MessageCrypto.isDecline(raw)
-                    || MessageCrypto.isKeyExchange(raw) || MessageCrypto.isMessage(raw)) {
+                    || MessageCrypto.isKeyExchange(raw) || MessageCrypto.isEnd(raw)) {
                 ci.cancel();
             }
             return;
@@ -71,6 +95,19 @@ public class ChatListenerMixin {
                             .append(Component.literal("/wm em accept " + sender).withStyle(ChatFormatting.YELLOW))
                             .append(Component.literal(" or ").withStyle(ChatFormatting.GRAY))
                             .append(Component.literal("/wm em decline " + sender).withStyle(ChatFormatting.RED))
+            );
+            ci.cancel();
+            return;
+        }
+
+        // --- Session ended by other player ---
+        if (MessageCrypto.isEnd(raw)) {
+            WhisperMod.exitAllSilent();
+            SessionManager.remove(sender);
+            mc.player.sendSystemMessage(
+                    Component.literal("[EM] ").withStyle(ChatFormatting.GRAY)
+                            .append(Component.literal(sender).withStyle(ChatFormatting.AQUA))
+                            .append(Component.literal(" ended the encrypted session.").withStyle(ChatFormatting.GRAY))
             );
             ci.cancel();
             return;
