@@ -22,8 +22,10 @@ public class ChatListenerMixin {
     private void onDisguisedChatMessage(Component message, ChatType.Bound bound, CallbackInfo ci) {
         String raw = message.getString();
         String sender = bound.name().getString();
-        // Strip " -> me" or " -> you" suffix if present
+        // Strip " -> me", " -> you", " -> YOU" etc. suffix if present
         if (sender.contains(" -> ")) sender = sender.substring(0, sender.indexOf(" -> "));
+        // Strip trailing brackets/parens
+        sender = sender.replaceAll("[\\[\\]()]+$", "").trim();
         handleIncoming(raw, sender, ci);
     }
 
@@ -121,14 +123,38 @@ public class ChatListenerMixin {
     }
 
     private static String parseSender(String raw) {
-        // "player whispers to you: message"
+        if (raw == null) return null;
+
+        // Vanilla: "player whispers to you: message"
         int idx = raw.indexOf(" whispers to you: ");
         if (idx > 0) return raw.substring(0, idx);
 
-        // "[player -> me] message" format used by some servers
+        // EssentialsX / common: "[player -> me] message" or "[player -> you] message"
         if (raw.startsWith("[")) {
             int arrowIdx = raw.indexOf(" -> ");
             if (arrowIdx > 0) return raw.substring(1, arrowIdx);
+        }
+
+        // Parentheses variant: "(player -> me) message"
+        if (raw.startsWith("(")) {
+            int arrowIdx = raw.indexOf(" -> ");
+            if (arrowIdx > 0) return raw.substring(1, arrowIdx);
+        }
+
+        // "From player: message" or "[From player]: message" or "(From player) message"
+        if (raw.startsWith("From ") || raw.startsWith("[From ") || raw.startsWith("(From ")) {
+            String stripped = raw.replaceAll("^[\\[(]?From ", "");
+            int end = stripped.indexOf("]");
+            if (end == -1) end = stripped.indexOf(")");
+            if (end == -1) end = stripped.indexOf(":");
+            if (end > 0) return stripped.substring(0, end).trim();
+        }
+
+        // "[PC] player --> YOU: message"
+        if (raw.contains(" --> ")) {
+            int start = raw.indexOf("] ");
+            int end = raw.indexOf(" --> ");
+            if (start >= 0 && end > start) return raw.substring(start + 2, end).trim();
         }
 
         return null;
