@@ -61,48 +61,12 @@ A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm 
 
 ## Roadmap
 
-### v1.1.0 — Encryption Update ✅
-- [x] End-to-end encrypted DMs using ECDH key exchange + AES encryption
-- [x] Each message encrypts differently every time — no patterns in server logs
-- [x] Server admins only see encrypted gibberish instead of your messages
-- Requires both players to have the mod installed
-
-### v1.2.0 — Chat UI Update ✅
-- [x] All commands restructured under `/wm`
-- [x] `/whispermod` alias for `/wm`
-- [x] Chat input prefix showing active session
-- [x] Removing or replacing prefix returns to public chat
-- [x] `← Back` button in chat UI
-- [x] `Public Chat` label when no session is active
-
-### v1.3.0 — Session Requests ✅
-- [x] Accept/decline system for encrypted session requests
-- [x] `/wm em <player>` sends a request instead of immediately starting key exchange
-- [x] Encrypted chat auto-starts on both ends once key exchange completes
-- [x] Fixed key exchange not working in Minecraft 26.1.2
-- [x] Fixed empty prefix being sent as a whisper
-- [x] Fixed HUD label overlapping chat messages
-
-### v1.3.1 — Bug Fixes ✅
-- [x] Fixed crash on launch caused by invalid `ChatScreen` mixin injections
-- [x] Fixed `← Back` button being invisible
-- [x] Removed chat input prefix and overlay causing visual glitches
-
-### v2.0.0 — Tabbed Chat
-- [ ] Separate chat tabs for public chat and each DM conversation
-- [ ] Notification sound when you receive a message on a tab you're not viewing
-- [ ] Unread message indicator on tabs
-- [ ] Mute player — suppress whispers from specific players client-side
-- [ ] Custom tab names and colors — personalize your conversations
-- [ ] Pin a DM tab so it stays at the top
-- [ ] Chat log — save DM history to a file locally
-
-### Future — Server Companion Mod *(separate project)*
-- [ ] `/dm` as a fully separate command from `/w` with its own clean formatting
-- [ ] Native group DMs
-- [ ] DM request system — players can accept or decline DMs from strangers
-- [ ] Block list — completely ignore DMs from specific players server-wide
-- [ ] **No client install required** — any player can use `/dm` without the client mod; the client mod just adds extra QoL on top
+- ✅ v1.1.0 — End-to-end encryption via ECDH key exchange + AES
+- ✅ v1.2.0 — Commands restructured under `/wm`, chat UI improvements
+- ✅ v1.3.0 — Accept/decline system for encrypted sessions, auto-start chat
+- ✅ v1.3.1 — Bug fixes, back button fix, visual cleanup
+- 🔲 v2.0.0 — Tabbed chat, unread indicators, mute player, chat log
+- 🔲 Future — Server companion mod *(separate project)*
 
 ## License
 [MIT](LICENSE)
