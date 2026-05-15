@@ -66,7 +66,7 @@ Private messaging and end-to-end encryption, all from the client side.
 - v1.1.0 — End-to-end encryption via ECDH key exchange + AES
 - v1.2.0 — Commands restructured under `/wm`, chat UI improvements
 - v1.3.0 — Accept/decline system for encrypted sessions, auto-start chat
-- v1.3.1 — Bug fixes, back button fix, visual cleanup
+  - v1.3.1 — Bug fixes, back button fix, visual cleanup
 
 ### 🔲 v2.0.0 — Tabbed Chat
 Separate chat tabs for each conversation with unread indicators, mute player, and chat log.
