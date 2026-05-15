@@ -62,7 +62,7 @@ A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm 
 - [x] Server admins only see encrypted gibberish instead of your messages
 - Requires both players to have the mod installed
 
-### v1.2.0 — Chat UI Update ✅
+### v1.2.0 — Chat UI Update + Command ✅
 - [x] All commands restructured under `/wm`
 - [x] `/whispermod` alias for `/wm`
 - [x] Chat input prefix showing active session
