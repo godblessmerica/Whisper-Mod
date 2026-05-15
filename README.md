@@ -24,16 +24,6 @@ A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm 
 - Fabric Loader 0.19.2+
 - Fabric API 0.148.2+
 
-## Features
-- `/wm dm <player>` — start a persistent DM session, all messages sent as whispers automatically
-- `/wm em <player>` — start an end-to-end encrypted session, server admins only see gibberish
-- Switch conversations instantly without retyping anything
-- HUD indicator shows your active session — yellow for DM, green for EM
-- Tab completion suggests online players when typing commands
-- `← Back` button in chat UI to return to public chat instantly
-- `/wm back` to return to public chat from anywhere
-- 100% client-side — works on any server, no ban risk
-
 ## Commands
 | Command | Description |
 |---|---|
@@ -45,6 +35,33 @@ A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm 
 > `/whispermod` works as an alias for `/wm`
 
 > **Note:** Encrypted sessions (`/wm em`) require both players to have the mod installed.
+
+## Features
+- `/wm dm <player>` — start a persistent DM session, all messages sent as whispers automatically
+- `/wm em <player>` — start an end-to-end encrypted session, server admins only see gibberish
+- Switch conversations instantly without retyping anything
+- HUD indicator shows your active session — yellow for DM, green for EM
+- Tab completion suggests online players when typing commands
+- `← Back` button in chat UI to return to public chat instantly
+- `/wm back` to return to public chat from anywhere
+- 100% client-side — works on any server, no ban risk
+
+## How It Works
+
+### DM Mode (`/wm dm`)
+When you start a DM session, all messages you type are automatically sent as `/w` whispers to the target player. The server handles delivery exactly like a normal whisper — the mod just removes the need to retype the command every message.
+
+### Encrypted Mode (`/wm em`)
+When you start an encrypted session, the mod performs an **ECDH key exchange** with the other player's mod:
+1. Your client generates a unique keypair and sends your public key to the other player via `/w`
+2. Their mod receives it, generates their own keypair, and sends their public key back
+3. Both clients independently compute the same **shared secret** using their own private key and the other's public key — the secret is never sent over the network
+4. All messages are then encrypted using **AES-128** with a random IV before being sent, so every message looks different even if the text is the same
+5. The other player's mod decrypts the message and displays the real text
+
+The server only ever sees gibberish — it has no way to read the content without one of the private keys, which never leave either computer.
+### Chat UI
+When in a session, the chat input automatically shows a `[DM to player]` or `[EM to player]` prefix. Removing or replacing the prefix returns you to public chat. A `← Back` button also appears in the chat UI for quick access.
 
 ## What's New in v1.2.0
 - All commands now under `/wm` — type `/wm help` for a full list
