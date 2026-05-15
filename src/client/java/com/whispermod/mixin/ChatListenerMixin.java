@@ -104,7 +104,7 @@ public class ChatListenerMixin {
         if ("me".equalsIgnoreCase(sender) || (localName != null && localName.equalsIgnoreCase(sender))) {
             if (MessageCrypto.isRequest(raw) || MessageCrypto.isDecline(raw)
                     || MessageCrypto.isKeyExchange(raw) || MessageCrypto.isMessage(raw)
-                    || MessageCrypto.isEnd(raw)) {
+                    || MessageCrypto.isEnd(raw) || WhisperMod.getDmTarget() != null) {
                 ci.cancel();
             }
             return;
