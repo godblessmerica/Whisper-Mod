@@ -47,5 +47,16 @@ public class GuiMixin {
         graphics.fill(labelX - 2, labelY - 2, labelX + labelW + 2, labelY + 10, 0x60000000);
         graphics.text(mc.font, modeLabel, labelX, labelY, -1, false);
 
+        // Back button — only when in a session
+        if (dm != null || em != null) {
+            MutableComponent backBtn = Component.literal("← Back").withStyle(ChatFormatting.WHITE);
+            int btnX = labelX + labelW + 6;
+            int btnY = labelY - 2;
+            int btnW = mc.font.width(backBtn.getString()) + 6;
+            int btnH = 12;
+
+            graphics.fill(btnX, btnY, btnX + btnW, btnY + btnH, 0x60000000);
+            graphics.text(mc.font, backBtn, btnX + 3, btnY + 2, -1, false);
+        }
     }
 }
