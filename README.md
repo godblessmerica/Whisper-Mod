@@ -46,6 +46,12 @@ A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm 
 
 > **Note:** Encrypted sessions (`/wm em`) require both players to have the mod installed.
 
+## What's New in v1.3.1
+- **Fixed crash on launch** — removed faulty mixin injections into `ChatScreen` that caused the game to crash on startup
+- **Fixed back button** — `← Back` button is now visible and clickable in the chat UI
+- **Removed chat input prefix** — no more `[DM to player]` text cluttering the chat input box
+- **Removed input overlay** — cleaned up the dark rectangle that appeared behind the prefix
+
 ## What's New in v1.3.0
 - **Accept/Decline system** — `/wm em <player>` now sends a session request instead of immediately starting key exchange
 - **Auto-start encrypted chat** — once both sides complete the key exchange, encrypted chat opens automatically on both ends
@@ -76,6 +82,11 @@ A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm 
 - [x] Fixed key exchange not working in Minecraft 26.1.2
 - [x] Fixed empty prefix being sent as a whisper
 - [x] Fixed HUD label overlapping chat messages
+
+### v1.3.1 — Bug Fixes ✅
+- [x] Fixed crash on launch caused by invalid `ChatScreen` mixin injections
+- [x] Fixed `← Back` button being invisible
+- [x] Removed chat input prefix and overlay causing visual glitches
 
 ### v2.0.0 — Tabbed Chat
 - [ ] Separate chat tabs for public chat and each DM conversation
