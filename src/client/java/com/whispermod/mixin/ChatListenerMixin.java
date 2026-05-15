@@ -25,10 +25,10 @@ public class ChatListenerMixin {
 
         // Detect outgoing echo: bound name contains " -> " meaning we sent this
         if (boundName.contains(" -> ")) {
-            // Hide all outgoing WM protocol echoes
+            // Hide all outgoing WM protocol echoes and DM echoes (we show our own message immediately)
             if (MessageCrypto.isRequest(raw) || MessageCrypto.isDecline(raw)
                     || MessageCrypto.isKeyExchange(raw) || MessageCrypto.isEnd(raw)
-                    || MessageCrypto.isMessage(raw)) {
+                    || MessageCrypto.isMessage(raw) || WhisperMod.getDmTarget() != null) {
                 ci.cancel();
             }
             return;
@@ -46,6 +46,23 @@ public class ChatListenerMixin {
         }
 
         String sender = boundName.replaceAll("[\\[\\]()]+$", "").trim();
+
+        // Incoming DM from our partner via disguised chat (raw is just the message text)
+        String dmTarget = WhisperMod.getDmTarget();
+        if (dmTarget != null && sender.equalsIgnoreCase(dmTarget)
+                && !MessageCrypto.isMessage(raw) && !MessageCrypto.isRequest(raw)
+                && !MessageCrypto.isKeyExchange(raw) && !MessageCrypto.isEnd(raw)
+                && !MessageCrypto.isDecline(raw)) {
+            Minecraft mc = Minecraft.getInstance();
+            mc.player.sendSystemMessage(
+                    Component.literal("[DM] ").withStyle(ChatFormatting.YELLOW)
+                            .append(Component.literal(sender + ": ").withStyle(ChatFormatting.AQUA))
+                            .append(Component.literal(raw).withStyle(ChatFormatting.WHITE))
+            );
+            ci.cancel();
+            return;
+        }
+
         handleIncoming(raw, sender, ci);
     }
 
@@ -53,6 +70,13 @@ public class ChatListenerMixin {
     @Inject(method = "handleSystemMessage", at = @At("HEAD"), cancellable = true)
     private void onSystemMessage(Component message, boolean overlay, CallbackInfo ci) {
         String raw = message.getString();
+
+        // Suppress outgoing DM echo ("You whisper to player: ...") — we already show our own message
+        if (raw != null && raw.startsWith("You whisper to ") && WhisperMod.getDmTarget() != null) {
+            ci.cancel();
+            return;
+        }
+
         String sender = parseSender(raw);
         if (sender == null) return;
 
@@ -84,6 +108,22 @@ public class ChatListenerMixin {
 
     private static void handleIncoming(String raw, String sender, CallbackInfo ci) {
         Minecraft mc = Minecraft.getInstance();
+
+        // --- Incoming DM from our current DM partner ---
+        String dmTarget = WhisperMod.getDmTarget();
+        if (dmTarget != null && sender.equalsIgnoreCase(dmTarget)
+                && !MessageCrypto.isMessage(raw) && !MessageCrypto.isRequest(raw)
+                && !MessageCrypto.isKeyExchange(raw) && !MessageCrypto.isEnd(raw)
+                && !MessageCrypto.isDecline(raw)) {
+            String text = extractMessageText(raw, sender);
+            mc.player.sendSystemMessage(
+                    Component.literal("[DM] ").withStyle(ChatFormatting.YELLOW)
+                            .append(Component.literal(sender + ": ").withStyle(ChatFormatting.AQUA))
+                            .append(Component.literal(text != null ? text : raw).withStyle(ChatFormatting.WHITE))
+            );
+            ci.cancel();
+            return;
+        }
 
         // --- EM session request ---
         if (MessageCrypto.isRequest(raw)) {
@@ -220,5 +260,28 @@ public class ChatListenerMixin {
         }
 
         return null;
+    }
+
+    /** Extracts just the message text from a full whisper string like "player whispers to you: hello" */
+    private static String extractMessageText(String raw, String sender) {
+        if (raw == null) return null;
+
+        // "player whispers to you: text"
+        String tag = sender + " whispers to you: ";
+        if (raw.startsWith(tag)) return raw.substring(tag.length());
+
+        // "[player -> me] text" or "(player -> me) text"
+        int bracket = raw.indexOf("] ");
+        if (bracket >= 0 && raw.indexOf(sender) >= 0) return raw.substring(bracket + 2).trim();
+
+        int paren = raw.indexOf(") ");
+        if (paren >= 0 && raw.indexOf(sender) >= 0) return raw.substring(paren + 2).trim();
+
+        // "From player: text"
+        String fromTag = sender + ": ";
+        int idx = raw.lastIndexOf(fromTag);
+        if (idx >= 0) return raw.substring(idx + fromTag.length());
+
+        return raw;
     }
 }
