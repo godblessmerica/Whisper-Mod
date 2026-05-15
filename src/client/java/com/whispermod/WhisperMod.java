@@ -1,8 +1,6 @@
 package com.whispermod;
 
-import com.whispermod.command.BackCommand;
-import com.whispermod.command.DmCommand;
-import com.whispermod.command.EmCommand;
+import com.whispermod.command.WmCommand;
 import com.whispermod.crypto.MessageCrypto;
 import com.whispermod.crypto.SessionManager;
 import net.fabricmc.api.ClientModInitializer;
@@ -19,24 +17,24 @@ public class WhisperMod implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            DmCommand.register(dispatcher);
-            EmCommand.register(dispatcher);
-            BackCommand.register(dispatcher);
-        });
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
+                WmCommand.register(dispatcher));
 
-        // Intercept outgoing chat — route to the active session
+        // Intercept outgoing chat — strip prefix, route to the active session
         ClientSendMessageEvents.ALLOW_CHAT.register(message -> {
             Minecraft mc = Minecraft.getInstance();
 
             if (emTarget != null) {
-                // encrypted session — encrypt and send via /w
+                // strip prefix if present
+                String prefix = "[EM to " + emTarget + "] ";
+                String text = message.startsWith(prefix) ? message.substring(prefix.length()) : message;
+                if (text.isEmpty()) return false;
+
                 if (SessionManager.isReady(emTarget)) {
                     byte[] key = SessionManager.get(emTarget).getSharedKey();
-                    String encrypted = MessageCrypto.encrypt(key, message);
+                    String encrypted = MessageCrypto.encrypt(key, text);
                     mc.getConnection().sendUnattendedCommand("w " + emTarget + " " + encrypted, mc.screen);
                 } else {
-                    // session not ready yet
                     mc.player.sendSystemMessage(
                             Component.literal("[EM] Warning: secure session not established yet. Message not sent.")
                                     .withStyle(ChatFormatting.RED)
@@ -46,8 +44,12 @@ public class WhisperMod implements ClientModInitializer {
             }
 
             if (dmTarget != null) {
-                // unencrypted session — send via /w as-is
-                mc.getConnection().sendUnattendedCommand("w " + dmTarget + " " + message, mc.screen);
+                // strip prefix if present
+                String prefix = "[DM to " + dmTarget + "] ";
+                String text = message.startsWith(prefix) ? message.substring(prefix.length()) : message;
+                if (text.isEmpty()) return false;
+
+                mc.getConnection().sendUnattendedCommand("w " + dmTarget + " " + text, mc.screen);
                 return false;
             }
 
