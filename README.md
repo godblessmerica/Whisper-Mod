@@ -61,12 +61,18 @@ A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm 
 
 ## Roadmap
 
-- ✅ v1.1.0 — End-to-end encryption via ECDH key exchange + AES
-- ✅ v1.2.0 — Commands restructured under `/wm`, chat UI improvements
-- ✅ v1.3.0 — Accept/decline system for encrypted sessions, auto-start chat
-- ✅ v1.3.1 — Bug fixes, back button fix, visual cleanup
-- 🔲 v2.0.0 — Tabbed chat, unread indicators, mute player, chat log
-- 🔲 Future — Server companion mod *(separate project)*
+### ✅ v1.x — Foundation
+Private messaging and end-to-end encryption, all from the client side.
+- v1.1.0 — End-to-end encryption via ECDH key exchange + AES
+- v1.2.0 — Commands restructured under `/wm`, chat UI improvements
+- v1.3.0 — Accept/decline system for encrypted sessions, auto-start chat
+- v1.3.1 — Bug fixes, back button fix, visual cleanup
+
+### 🔲 v2.0.0 — Tabbed Chat
+Separate chat tabs for each conversation with unread indicators, mute player, and chat log.
+
+### 🔲 Future — Server Companion Mod *(separate project)*
+Native group DMs, DM request system, and block list — no client install required.
 
 ## License
 [MIT](LICENSE)
