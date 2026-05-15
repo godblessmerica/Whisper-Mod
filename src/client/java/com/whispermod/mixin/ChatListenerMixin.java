@@ -159,7 +159,9 @@ public class ChatListenerMixin {
                     SessionManager.removeOutgoing(sender);
                     session.markInitiated();
                     String kxReply = MessageCrypto.KX_PREFIX + session.getPublicKeyBase64();
-                    mc.getConnection().sendUnattendedCommand("w " + sender + " " + kxReply, mc.screen);
+                    final String kxReplyFinal = kxReply;
+                    final String senderFinal = sender;
+                    mc.execute(() -> mc.getConnection().sendCommand("w " + senderFinal + " " + kxReplyFinal));
                 }
 
                 WhisperMod.setEmTarget(sender);
