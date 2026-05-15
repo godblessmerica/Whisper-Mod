@@ -76,7 +76,10 @@ public class WhisperMod implements ClientModInitializer {
 
                 mc.getConnection().sendUnattendedCommand("w " + dmTarget + " " + text, mc.screen);
 
-                // Show own message immediately — suppress the server echo
+                // Track sent text so we can cancel the server echo
+                trackSent("DM:" + text);
+
+                // Show own message immediately
                 String myName = mc.player.getName().getString();
                 mc.player.sendSystemMessage(
                         Component.literal("[DM] ").withStyle(ChatFormatting.YELLOW)
