@@ -2,6 +2,7 @@ package com.whispermod.mixin;
 
 import com.whispermod.WhisperMod;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -28,9 +29,9 @@ public class ChatScreenMixin {
         }
     }
 
-    // Check every tick — catches backspace, delete, select-all-replace, anything
-    @Inject(method = "tick", at = @At("TAIL"))
-    private void onTick(CallbackInfo ci) {
+    // Check every render frame — catches backspace, delete, select-all-replace, anything
+    @Inject(method = "render", at = @At("TAIL"))
+    private void onRender(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         String prefix = WhisperMod.getChatPrefix();
         if (prefix != null && input != null && !input.getValue().startsWith(prefix)) {
             WhisperMod.exitAll();

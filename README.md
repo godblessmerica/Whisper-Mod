@@ -7,7 +7,7 @@
 [![Platform](https://img.shields.io/badge/platform-Minecraft%2026.1.2-62B47A?style=flat-square)](#)
 [![Mod Loader](https://img.shields.io/badge/mod%20loader-Fabric-DBD0B4?style=flat-square)](https://fabricmc.net)
 [![License](https://img.shields.io/badge/license-MIT-d580ff?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.3.0-00e5ff?style=flat-square)](../../releases/latest)
+[![Version](https://img.shields.io/badge/version-1.3.1-00e5ff?style=flat-square)](../../releases/latest)
 
 A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm dm` for persistent DM sessions or `/wm em` for end-to-end encrypted conversations — no more retyping `/w` every message. Currently supports Minecraft 26.1.2.
 
