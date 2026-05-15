@@ -7,7 +7,7 @@
 [![Platform](https://img.shields.io/badge/platform-Minecraft%2026.1.2-62B47A?style=flat-square)](#)
 [![Mod Loader](https://img.shields.io/badge/mod%20loader-Fabric-DBD0B4?style=flat-square)](https://fabricmc.net)
 [![License](https://img.shields.io/badge/license-MIT-d580ff?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.3.1-00e5ff?style=flat-square)](../../releases/latest)
+[![Version](https://img.shields.io/badge/version-1.3.2-00e5ff?style=flat-square)](../../releases/latest)
 
 A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm dm` for persistent DM sessions or `/wm em` for end-to-end encrypted conversations — no more retyping `/w` every message. Currently supports Minecraft 26.1.2.
 
@@ -46,6 +46,10 @@ A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm 
 
 > **Note:** Encrypted sessions (`/wm em`) require both players to have the mod installed.
 
+## What's New in v1.3.2
+- **Fixed EM requests not working on some servers** — mod now recognises multiple whisper formats used by popular plugins (EssentialsX, CMI, CustomPM, and more)
+- **Improved sender detection** — strips formatting artifacts like `-> me` or brackets from sender names so accept/decline works correctly
+
 ## What's New in v1.3.1
 - **Fixed crash on launch** — removed faulty mixin injections into `ChatScreen` that caused the game to crash on startup
 - **Fixed back button** — `← Back` button is now visible and clickable in the chat UI
@@ -67,6 +71,7 @@ Private messaging and end-to-end encryption, all from the client side.
 - v1.2.0 — Commands restructured under `/wm`, chat UI improvements
 - v1.3.0 — Accept/decline system for encrypted sessions, auto-start chat
   - v1.3.1 — Bug fixes, back button fix, visual cleanup
+  - v1.3.2 — Fixed EM requests on servers using non-vanilla whisper formats
 
 ### 🔲 v2.0.0 — Tabbed Chat
 Separate chat tabs for each conversation with unread indicators, mute player, and chat log.
