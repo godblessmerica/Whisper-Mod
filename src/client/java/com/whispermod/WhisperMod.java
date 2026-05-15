@@ -10,31 +10,55 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 public class WhisperMod implements ClientModInitializer {
 
-    private static String dmTarget = null; // unencrypted session
-    private static String emTarget = null; // encrypted session
+    private static String dmTarget = null;
+    private static String emTarget = null;
+
+    /** Tracks WM tokens we sent so echoes can be detected and cancelled. */
+    private static final Set<String> sentTokens = Collections.synchronizedSet(new HashSet<>());
+
+    public static void trackSent(String token) {
+        sentTokens.add(token);
+    }
+
+    public static boolean consumeSent(String token) {
+        return sentTokens.remove(token);
+    }
 
     @Override
     public void onInitializeClient() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
                 WmCommand.register(dispatcher));
 
-        // Intercept outgoing chat — strip prefix, route to the active session
         ClientSendMessageEvents.ALLOW_CHAT.register(message -> {
             Minecraft mc = Minecraft.getInstance();
 
             if (emTarget != null) {
-                // strip prefix if present
                 String prefix = "[EM to " + emTarget + "] ";
                 String text = message.startsWith(prefix) ? message.substring(prefix.length()) : message;
                 text = text.trim();
-                if (text.isEmpty() || text.equals(prefix.trim())) return false;
+                if (text.isEmpty()) return false;
 
                 if (SessionManager.isReady(emTarget)) {
                     byte[] key = SessionManager.get(emTarget).getSharedKey();
                     String encrypted = MessageCrypto.encrypt(key, text);
+
+                    // Track echo so we can cancel it when it comes back
+                    trackSent(encrypted);
+
                     mc.getConnection().sendUnattendedCommand("w " + emTarget + " " + encrypted, mc.screen);
+
+                    // Show own message immediately — don't wait for echo
+                    String myName = mc.player.getName().getString();
+                    mc.player.sendSystemMessage(
+                            Component.literal("[EM] " + myName + ": ").withStyle(ChatFormatting.GREEN)
+                                    .append(Component.literal(text).withStyle(ChatFormatting.WHITE))
+                    );
                 } else {
                     mc.player.sendSystemMessage(
                             Component.literal("[EM] Warning: secure session not established yet. Message not sent.")
@@ -45,11 +69,10 @@ public class WhisperMod implements ClientModInitializer {
             }
 
             if (dmTarget != null) {
-                // strip prefix if present
                 String prefix = "[DM to " + dmTarget + "] ";
                 String text = message.startsWith(prefix) ? message.substring(prefix.length()) : message;
                 text = text.trim();
-                if (text.isEmpty() || text.equals(prefix.trim())) return false;
+                if (text.isEmpty()) return false;
 
                 mc.getConnection().sendUnattendedCommand("w " + dmTarget + " " + text, mc.screen);
                 return false;
@@ -62,7 +85,7 @@ public class WhisperMod implements ClientModInitializer {
     // --- DM ---
     public static void setDmTarget(String player) {
         dmTarget = player;
-        if (player != null) emTarget = null; // only one mode active at a time
+        if (player != null) emTarget = null;
     }
 
     public static String getDmTarget() {
@@ -72,7 +95,7 @@ public class WhisperMod implements ClientModInitializer {
     // --- EM ---
     public static void setEmTarget(String player) {
         emTarget = player;
-        if (player != null) dmTarget = null; // only one mode active at a time
+        if (player != null) dmTarget = null;
     }
 
     public static String getEmTarget() {
@@ -89,10 +112,11 @@ public class WhisperMod implements ClientModInitializer {
     // --- /back — exit everything ---
     public static void exitAll() {
         Minecraft mc = Minecraft.getInstance();
-        // If in an EM session, notify the other player and clear the session
         if (emTarget != null) {
             if (mc.getConnection() != null) {
-                mc.getConnection().sendUnattendedCommand("w " + emTarget + " " + MessageCrypto.END_PREFIX, mc.screen);
+                String endMsg = MessageCrypto.END_PREFIX;
+                trackSent(endMsg);
+                mc.getConnection().sendUnattendedCommand("w " + emTarget + " " + endMsg, mc.screen);
             }
             SessionManager.remove(emTarget);
         }
@@ -100,7 +124,6 @@ public class WhisperMod implements ClientModInitializer {
         emTarget = null;
     }
 
-    /** Returns the plain text prefix shown in the chat input, or null if no session is active. */
     public static String getChatPrefix() {
         if (dmTarget != null) return "[DM to " + dmTarget + "] ";
         if (emTarget != null) return "[EM to " + emTarget + "] ";

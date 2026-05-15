@@ -25,36 +25,24 @@ public class ChatListenerMixin {
 
         // Detect outgoing echo: bound name contains " -> " meaning we sent this
         if (boundName.contains(" -> ")) {
-            // Extract recipient name (after " -> ")
-            String recipient = boundName.substring(boundName.indexOf(" -> ") + 4).replaceAll("[\\[\\]()]+$", "").trim();
-
-            // Show our own encrypted messages decrypted
-            if (MessageCrypto.isMessage(raw)) {
-                DmSession session = SessionManager.get(recipient);
-                if (session != null && session.isReady()) {
-                    String token = MessageCrypto.extractToken(raw, MessageCrypto.MSG_PREFIX);
-                    if (token != null) {
-                        String decrypted = MessageCrypto.decrypt(session.getSharedKey(), token);
-                        if (decrypted != null) {
-                            Minecraft mc = Minecraft.getInstance();
-                            String myName = mc.player != null ? mc.player.getName().getString() : "me";
-                            mc.player.sendSystemMessage(
-                                    Component.literal("[EM] " + myName + ": ").withStyle(ChatFormatting.GREEN)
-                                            .append(Component.literal(decrypted).withStyle(ChatFormatting.WHITE))
-                            );
-                        }
-                    }
-                }
-                ci.cancel();
-                return;
-            }
-
-            // Hide all other outgoing WM protocol echoes
+            // Hide all outgoing WM protocol echoes
             if (MessageCrypto.isRequest(raw) || MessageCrypto.isDecline(raw)
-                    || MessageCrypto.isKeyExchange(raw) || MessageCrypto.isEnd(raw)) {
+                    || MessageCrypto.isKeyExchange(raw) || MessageCrypto.isEnd(raw)
+                    || MessageCrypto.isMessage(raw)) {
                 ci.cancel();
             }
             return;
+        }
+
+        // Fallback echo detection using sent-token cache (for servers that don't use " -> " format)
+        if (MessageCrypto.isMessage(raw) || MessageCrypto.isEnd(raw)) {
+            String token = MessageCrypto.isMessage(raw)
+                    ? MessageCrypto.extractToken(raw, MessageCrypto.MSG_PREFIX)
+                    : MessageCrypto.END_PREFIX;
+            if (token != null && WhisperMod.consumeSent(token)) {
+                ci.cancel();
+                return;
+            }
         }
 
         String sender = boundName.replaceAll("[\\[\\]()]+$", "").trim();
@@ -73,10 +61,22 @@ public class ChatListenerMixin {
         String localName = mc.player != null ? mc.player.getName().getString() : null;
         if ("me".equalsIgnoreCase(sender) || (localName != null && localName.equalsIgnoreCase(sender))) {
             if (MessageCrypto.isRequest(raw) || MessageCrypto.isDecline(raw)
-                    || MessageCrypto.isKeyExchange(raw) || MessageCrypto.isMessage(raw)) {
+                    || MessageCrypto.isKeyExchange(raw) || MessageCrypto.isMessage(raw)
+                    || MessageCrypto.isEnd(raw)) {
                 ci.cancel();
             }
             return;
+        }
+
+        // Fallback echo detection using sent-token cache
+        if (MessageCrypto.isMessage(raw) || MessageCrypto.isEnd(raw)) {
+            String token = MessageCrypto.isMessage(raw)
+                    ? MessageCrypto.extractToken(raw, MessageCrypto.MSG_PREFIX)
+                    : MessageCrypto.END_PREFIX;
+            if (token != null && WhisperMod.consumeSent(token)) {
+                ci.cancel();
+                return;
+            }
         }
 
         handleIncoming(raw, sender, ci);
