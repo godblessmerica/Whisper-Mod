@@ -34,12 +34,21 @@ public class ChatListenerMixin {
             return;
         }
 
-        // Fallback echo detection using sent-token cache (for servers that don't use " -> " format)
+        // Fallback echo detection using sent-token cache (EM protocol + DM text)
         if (MessageCrypto.isMessage(raw) || MessageCrypto.isEnd(raw)) {
             String token = MessageCrypto.isMessage(raw)
                     ? MessageCrypto.extractToken(raw, MessageCrypto.MSG_PREFIX)
                     : MessageCrypto.END_PREFIX;
             if (token != null && WhisperMod.consumeSent(token)) {
+                ci.cancel();
+                return;
+            }
+        }
+
+        // Fallback DM echo detection — check if raw ends with a DM text we sent
+        if (WhisperMod.getDmTarget() != null) {
+            String dmToken = extractDmSentToken(raw);
+            if (dmToken != null && WhisperMod.consumeSent("DM:" + dmToken)) {
                 ci.cancel();
                 return;
             }
@@ -71,10 +80,19 @@ public class ChatListenerMixin {
     private void onSystemMessage(Component message, boolean overlay, CallbackInfo ci) {
         String raw = message.getString();
 
-        // Suppress outgoing DM echo ("You whisper to player: ...") — we already show our own message
-        if (raw != null && raw.startsWith("You whisper to ") && WhisperMod.getDmTarget() != null) {
-            ci.cancel();
-            return;
+        // Suppress outgoing DM echo in any format ("You whisper to player: ..." etc.)
+        if (raw != null && WhisperMod.getDmTarget() != null) {
+            String dmToken = extractDmSentToken(raw);
+            if (dmToken != null && WhisperMod.consumeSent("DM:" + dmToken)) {
+                ci.cancel();
+                return;
+            }
+            // Also catch by outgoing format prefix regardless of text tracking
+            if (raw.startsWith("You whisper to ") || raw.startsWith("You tell ")
+                    || raw.startsWith("You msg ")) {
+                ci.cancel();
+                return;
+            }
         }
 
         String sender = parseSender(raw);
@@ -259,6 +277,26 @@ public class ChatListenerMixin {
             if (start >= 0 && end > start) return raw.substring(start + 2, end).trim();
         }
 
+        return null;
+    }
+
+    /**
+     * Extracts the trailing message text from an outgoing echo like
+     * "You whisper to player: hello" or "[me -> player] hello" → "hello"
+     */
+    private static String extractDmSentToken(String raw) {
+        if (raw == null) return null;
+        // "You whisper to player: text"
+        int colon = raw.indexOf(": ");
+        if (colon > 0 && (raw.startsWith("You whisper to ") || raw.startsWith("You tell ")
+                || raw.startsWith("You msg "))) {
+            return raw.substring(colon + 2).trim();
+        }
+        // "[me -> player] text" or "[me -> player]: text"
+        if (raw.startsWith("[") && raw.contains(" -> ")) {
+            int end = raw.indexOf("] ");
+            if (end > 0) return raw.substring(end + 2).replaceFirst("^:\\s*", "").trim();
+        }
         return null;
     }
 
