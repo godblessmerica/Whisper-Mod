@@ -235,7 +235,8 @@ public class ChatListenerMixin {
             if (decrypted == null) return;
 
             mc.player.sendSystemMessage(
-                    Component.literal("[EM] " + sender + ": ").withStyle(ChatFormatting.GREEN)
+                    Component.literal("[EM] ").withStyle(ChatFormatting.GREEN)
+                            .append(Component.literal(sender + ": ").withStyle(ChatFormatting.AQUA))
                             .append(Component.literal(decrypted).withStyle(ChatFormatting.WHITE))
             );
             ci.cancel();
