@@ -8,7 +8,10 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.chat.ChatListener;
 import net.minecraft.network.chat.ChatType;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -150,9 +153,17 @@ public class ChatListenerMixin {
                     Component.literal("[EM] ").withStyle(ChatFormatting.GREEN)
                             .append(Component.literal(sender).withStyle(ChatFormatting.AQUA))
                             .append(Component.literal(" wants to start an encrypted session. ").withStyle(ChatFormatting.GREEN))
-                            .append(Component.literal("/wm em accept " + sender).withStyle(ChatFormatting.YELLOW))
-                            .append(Component.literal(" or ").withStyle(ChatFormatting.GRAY))
-                            .append(Component.literal("/wm em decline " + sender).withStyle(ChatFormatting.RED))
+                            .append(Component.literal("[Accept]").withStyle(Style.EMPTY
+                                    .withColor(ChatFormatting.GREEN)
+                                    .withBold(true)
+                                    .withClickEvent(new ClickEvent.RunCommand("/wm em accept " + sender))
+                                    .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to accept")))))
+                            .append(Component.literal(" ").withStyle(ChatFormatting.GRAY))
+                            .append(Component.literal("[Decline]").withStyle(Style.EMPTY
+                                    .withColor(ChatFormatting.RED)
+                                    .withBold(true)
+                                    .withClickEvent(new ClickEvent.RunCommand("/wm em decline " + sender))
+                                    .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to decline")))))
             );
             ci.cancel();
             return;
