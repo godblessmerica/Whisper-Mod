@@ -493,7 +493,7 @@ public class WmCommand {
                     return 1;
                 })
                 .then(ClientCommands.argument("player", StringArgumentType.word())
-                        .suggests((ctx, builder) -> suggestPlayers(builder))
+                        .suggests((ctx, builder) -> suggestBlocked(builder))
                         .executes(ctx -> {
                             String player = StringArgumentType.getString(ctx, "player");
 
@@ -546,6 +546,17 @@ public class WmCommand {
                 if (name.toLowerCase().startsWith(remaining)) {
                     builder.suggest(name);
                 }
+            }
+        }
+        return builder.buildFuture();
+    }
+
+    private static CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggestBlocked(
+            com.mojang.brigadier.suggestion.SuggestionsBuilder builder) {
+        String remaining = builder.getRemaining().toLowerCase();
+        for (String blocked : FriendManager.getBlocked()) {
+            if (blocked.toLowerCase().startsWith(remaining)) {
+                builder.suggest(blocked);
             }
         }
         return builder.buildFuture();
