@@ -35,7 +35,13 @@ public class WmCommand {
                     sendClickable(ctx.getSource(), "/wm unfriend <player>", "Remove a friend",                                  ChatFormatting.RED);
                     sendClickable(ctx.getSource(), "/wm friends",           "View your friend list",                            ChatFormatting.AQUA);
                     sendClickable(ctx.getSource(), "/wm pending",           "View pending outgoing friend requests",            ChatFormatting.YELLOW);
-                    sendClickable(ctx.getSource(), "/wm block <player>",    "Block someone from sending you requests",          ChatFormatting.RED);
+                    sendClickable(ctx.getSource(), "/wm status",            "See which friends are online",                     ChatFormatting.AQUA);
+                    sendClickable(ctx.getSource(), "/wm muted",             "View muted players and global mute status",        ChatFormatting.YELLOW);
+                    sendClickable(ctx.getSource(), "/wm mute",              "Toggle muting all friend requests",                ChatFormatting.RED);
+                    sendClickable(ctx.getSource(), "/wm mute <player>",    "Mute friend requests from a specific player",      ChatFormatting.RED);
+                    sendClickable(ctx.getSource(), "/wm unmute",           "Unmute all friend requests",                       ChatFormatting.YELLOW);
+                    sendClickable(ctx.getSource(), "/wm unmute <player>",  "Unmute friend requests from a specific player",    ChatFormatting.YELLOW);
+                    sendClickable(ctx.getSource(), "/wm block <player>",   "Block someone from sending you requests",          ChatFormatting.RED);
                     sendClickable(ctx.getSource(), "/wm unblock <player>",  "Unblock someone",                                 ChatFormatting.YELLOW);
                     sendClickable(ctx.getSource(), "/wm back",              "Return to public chat",                           ChatFormatting.YELLOW);
                     sendClickable(ctx.getSource(), "/wm clearconfig",       "Clear all saved friends and blocked players",      ChatFormatting.RED);
@@ -75,6 +81,15 @@ public class WmCommand {
                                 return 1;
                             }
 
+                            if (!isOnline(player)) {
+                                ctx.getSource().sendFeedback(
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
+                                                .append(Component.literal(" is not online.").withStyle(ChatFormatting.RED))
+                                );
+                                return 1;
+                            }
+
                             if (player.equalsIgnoreCase(WhisperMod.getDmTarget())) {
                                 ctx.getSource().sendFeedback(
                                         Component.literal("Already in a DM with ").withStyle(ChatFormatting.YELLOW)
@@ -111,6 +126,15 @@ public class WmCommand {
 
                             if (player.equalsIgnoreCase(localName)) {
                                 ctx.getSource().sendFeedback(Component.literal("You can't EM yourself.").withStyle(ChatFormatting.RED));
+                                return 1;
+                            }
+
+                            if (!isOnline(player)) {
+                                ctx.getSource().sendFeedback(
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
+                                                .append(Component.literal(" is not online.").withStyle(ChatFormatting.RED))
+                                );
                                 return 1;
                             }
 
@@ -297,6 +321,15 @@ public class WmCommand {
                                 return 1;
                             }
 
+                            if (!isOnline(player)) {
+                                ctx.getSource().sendFeedback(
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
+                                                .append(Component.literal(" is not online.").withStyle(ChatFormatting.RED))
+                                );
+                                return 1;
+                            }
+
                             if (FriendManager.isFriend(player)) {
                                 ctx.getSource().sendFeedback(
                                         Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
@@ -308,11 +341,12 @@ public class WmCommand {
                             }
 
                             if (FriendManager.hasOutgoing(player)) {
+                                long secs = FriendManager.outgoingRemainingSeconds(player);
                                 ctx.getSource().sendFeedback(
                                         Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
                                                 .append(Component.literal("You already sent a friend request to ").withStyle(ChatFormatting.YELLOW))
                                                 .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
-                                                .append(Component.literal(".").withStyle(ChatFormatting.YELLOW))
+                                                .append(Component.literal(secs > 0 ? ". Expires in " + secs + "s." : ".").withStyle(ChatFormatting.YELLOW))
                                 );
                                 return 1;
                             }
@@ -465,6 +499,125 @@ public class WmCommand {
                 })
         );
 
+        // /wm status
+        wm.then(ClientCommands.literal("status")
+                .executes(ctx -> {
+                    if (FriendManager.isMutedAll()) {
+                        ctx.getSource().sendFeedback(Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                .append(Component.literal("⚠ All friend requests are currently muted.").withStyle(ChatFormatting.RED)));
+                    }
+                    Set<String> friends = FriendManager.getFriends();
+                    if (friends.isEmpty()) {
+                        ctx.getSource().sendFeedback(Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                .append(Component.literal("You have no friends yet.").withStyle(ChatFormatting.GRAY)));
+                        return 1;
+                    }
+                    ctx.getSource().sendFeedback(Component.literal("--- Friend Status ---").withStyle(ChatFormatting.LIGHT_PURPLE));
+                    for (String friend : friends) {
+                        boolean online = isOnline(friend);
+                        ctx.getSource().sendFeedback(
+                                Component.literal("• ").withStyle(online ? ChatFormatting.GREEN : ChatFormatting.GRAY)
+                                        .append(Component.literal(friend).withStyle(ChatFormatting.AQUA))
+                                        .append(Component.literal(online ? " — Online" : " — Offline").withStyle(online ? ChatFormatting.GREEN : ChatFormatting.GRAY))
+                        );
+                    }
+                    return 1;
+                })
+        );
+
+        // /wm mute [player]
+        wm.then(ClientCommands.literal("mute")
+                .executes(ctx -> {
+                    boolean now = !FriendManager.isMutedAll();
+                    FriendManager.setMutedAll(now);
+                    ctx.getSource().sendFeedback(
+                            Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                    .append(Component.literal(now ? "All friend requests muted." : "Friend requests unmuted.").withStyle(now ? ChatFormatting.RED : ChatFormatting.GREEN))
+                    );
+                    return 1;
+                })
+                .then(ClientCommands.argument("player", StringArgumentType.word())
+                        .suggests((ctx, builder) -> suggestPlayers(builder))
+                        .executes(ctx -> {
+                            String player = StringArgumentType.getString(ctx, "player");
+                            if (FriendManager.isMuted(player)) {
+                                ctx.getSource().sendFeedback(
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
+                                                .append(Component.literal(" is already muted.").withStyle(ChatFormatting.RED))
+                                );
+                                return 1;
+                            }
+                            FriendManager.mute(player);
+                            ctx.getSource().sendFeedback(
+                                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                            .append(Component.literal("Muted friend requests from ").withStyle(ChatFormatting.RED))
+                                            .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
+                                            .append(Component.literal(".").withStyle(ChatFormatting.RED))
+                            );
+                            return 1;
+                        })
+                )
+        );
+
+        // /wm unmute [player]
+        wm.then(ClientCommands.literal("unmute")
+                .executes(ctx -> {
+                    if (!FriendManager.isMutedAll()) {
+                        ctx.getSource().sendFeedback(Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                .append(Component.literal("Friend requests are not globally muted.").withStyle(ChatFormatting.RED)));
+                        return 1;
+                    }
+                    FriendManager.setMutedAll(false);
+                    ctx.getSource().sendFeedback(Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                            .append(Component.literal("Friend requests unmuted.").withStyle(ChatFormatting.GREEN)));
+                    return 1;
+                })
+                .then(ClientCommands.argument("player", StringArgumentType.word())
+                        .suggests((ctx, builder) -> suggestMuted(builder))
+                        .executes(ctx -> {
+                            String player = StringArgumentType.getString(ctx, "player");
+                            if (!FriendManager.isMuted(player)) {
+                                ctx.getSource().sendFeedback(
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
+                                                .append(Component.literal(" is not muted.").withStyle(ChatFormatting.RED))
+                                );
+                                return 1;
+                            }
+                            FriendManager.unmute(player);
+                            ctx.getSource().sendFeedback(
+                                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                            .append(Component.literal("Unmuted friend requests from ").withStyle(ChatFormatting.GREEN))
+                                            .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
+                                            .append(Component.literal(".").withStyle(ChatFormatting.GREEN))
+                            );
+                            return 1;
+                        })
+                )
+        );
+
+        // /wm muted
+        wm.then(ClientCommands.literal("muted")
+                .executes(ctx -> {
+                    Set<String> muted = FriendManager.getMuted();
+                    if (FriendManager.isMutedAll()) {
+                        ctx.getSource().sendFeedback(Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                .append(Component.literal("All friend requests are currently muted.").withStyle(ChatFormatting.RED)));
+                    }
+                    if (muted.isEmpty() && !FriendManager.isMutedAll()) {
+                        ctx.getSource().sendFeedback(Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                .append(Component.literal("You have no muted players.").withStyle(ChatFormatting.GRAY)));
+                    } else if (!muted.isEmpty()) {
+                        ctx.getSource().sendFeedback(Component.literal("--- Muted Players ---").withStyle(ChatFormatting.LIGHT_PURPLE));
+                        for (String m : muted) {
+                            ctx.getSource().sendFeedback(Component.literal("• " + m).withStyle(ChatFormatting.WHITE));
+                        }
+                    }
+                    return 1;
+                })
+        );
+
         // /wm block <player>
         wm.then(ClientCommands.literal("block")
                 .executes(ctx -> {
@@ -609,6 +762,17 @@ public class WmCommand {
                 if (name.toLowerCase().startsWith(remaining)) {
                     builder.suggest(name);
                 }
+            }
+        }
+        return builder.buildFuture();
+    }
+
+    private static CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggestMuted(
+            com.mojang.brigadier.suggestion.SuggestionsBuilder builder) {
+        String remaining = builder.getRemaining().toLowerCase();
+        for (String muted : FriendManager.getMuted()) {
+            if (muted.toLowerCase().startsWith(remaining)) {
+                builder.suggest(muted);
             }
         }
         return builder.buildFuture();

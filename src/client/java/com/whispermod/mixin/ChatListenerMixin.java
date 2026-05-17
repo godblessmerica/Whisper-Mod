@@ -7,6 +7,8 @@ import com.whispermod.crypto.SessionManager;
 import com.whispermod.friends.FriendManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.client.multiplayer.chat.ChatListener;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.ClickEvent;
@@ -161,6 +163,10 @@ public class ChatListenerMixin {
 
         // --- Friend request ---
         if (MessageCrypto.isFriendRequest(raw)) {
+            if (FriendManager.isMutedAll() || FriendManager.isMuted(sender)) {
+                ci.cancel();
+                return;
+            }
             if (FriendManager.isBlocked(sender)) {
                 // Silently notify sender they are blocked — delay to get off the mixin thread
                 final String blockedSender = sender;
@@ -180,6 +186,7 @@ public class ChatListenerMixin {
             String token = MessageCrypto.extractToken(raw, MessageCrypto.FRIEND_REQ_PREFIX);
             String requester = token != null ? token.substring(MessageCrypto.FRIEND_REQ_PREFIX.length()) : sender;
             FriendManager.addIncoming(requester);
+            mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING, 1.0f));
             mc.player.sendSystemMessage(
                     Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
                             .append(Component.literal(requester).withStyle(ChatFormatting.AQUA))
@@ -257,6 +264,7 @@ public class ChatListenerMixin {
         if (MessageCrypto.isRequest(raw)) {
             if (!FriendManager.isFriend(sender)) { ci.cancel(); return; }
             SessionManager.addIncoming(sender);
+            mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.AMETHYST_BLOCK_CHIME, 1.0f));
             mc.player.sendSystemMessage(
                     Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
                             .append(Component.literal(sender).withStyle(ChatFormatting.AQUA))
