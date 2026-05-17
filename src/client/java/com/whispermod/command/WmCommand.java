@@ -198,11 +198,6 @@ public class WmCommand {
                                 DmSession session = SessionManager.getOrCreate(player);
                                 String kxMessage = MessageCrypto.KX_PREFIX + session.getPublicKeyBase64();
                                 mc.getConnection().sendUnattendedCommand("w " + player + " " + kxMessage, mc.screen);
-                                ctx.getSource().sendFeedback(
-                                        Component.literal("[EM] Accepted. Establishing secure session with ").withStyle(ChatFormatting.GREEN)
-                                                .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
-                                                .append(Component.literal("...").withStyle(ChatFormatting.GRAY))
-                                );
                                 return 1;
                             }
 
