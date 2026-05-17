@@ -9,11 +9,15 @@ import java.util.Base64;
 
 public class MessageCrypto {
 
-    public static final String MSG_PREFIX  = "WM:";
-    public static final String KX_PREFIX   = "WMKX:";
-    public static final String REQ_PREFIX  = "WMREQ:";
-    public static final String DECL_PREFIX = "WMDECL:";
-    public static final String END_PREFIX  = "WMEND:";
+    public static final String MSG_PREFIX          = "WM:";
+    public static final String KX_PREFIX           = "WMKX:";
+    public static final String REQ_PREFIX          = "WMREQ:";
+    public static final String DECL_PREFIX         = "WMDECL:";
+    public static final String END_PREFIX          = "WMEND:";
+    public static final String FRIEND_REQ_PREFIX   = "WMFR:";
+    public static final String FRIEND_ACCEPT_PREFIX = "WMFA:";
+    public static final String FRIEND_DECLINE_PREFIX = "WMFD:";
+    public static final String UNFRIEND_PREFIX     = "WMUF:";
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -73,6 +77,29 @@ public class MessageCrypto {
 
     public static boolean isEnd(String text) {
         return text != null && text.contains(END_PREFIX);
+    }
+
+    public static boolean isFriendRequest(String text) {
+        return text != null && text.contains(FRIEND_REQ_PREFIX);
+    }
+
+    public static boolean isFriendAccept(String text) {
+        return text != null && text.contains(FRIEND_ACCEPT_PREFIX);
+    }
+
+    public static boolean isFriendDecline(String text) {
+        return text != null && text.contains(FRIEND_DECLINE_PREFIX);
+    }
+
+    public static boolean isUnfriend(String text) {
+        return text != null && text.contains(UNFRIEND_PREFIX);
+    }
+
+    /** Returns true if the message contains any WM protocol prefix */
+    public static boolean isAnyProtocol(String text) {
+        return isMessage(text) || isKeyExchange(text) || isRequest(text) || isDecline(text)
+                || isEnd(text) || isFriendRequest(text) || isFriendAccept(text)
+                || isFriendDecline(text) || isUnfriend(text);
     }
 
     /**

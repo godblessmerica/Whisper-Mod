@@ -4,6 +4,7 @@ import com.whispermod.WhisperMod;
 import com.whispermod.crypto.DmSession;
 import com.whispermod.crypto.MessageCrypto;
 import com.whispermod.crypto.SessionManager;
+import com.whispermod.friends.FriendManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.chat.ChatListener;
@@ -28,10 +29,7 @@ public class ChatListenerMixin {
 
         // Detect outgoing echo: bound name contains " -> " meaning we sent this
         if (boundName.contains(" -> ")) {
-            // Hide all outgoing WM protocol echoes and DM echoes (we show our own message immediately)
-            if (MessageCrypto.isRequest(raw) || MessageCrypto.isDecline(raw)
-                    || MessageCrypto.isKeyExchange(raw) || MessageCrypto.isEnd(raw)
-                    || MessageCrypto.isMessage(raw) || WhisperMod.getDmTarget() != null) {
+            if (MessageCrypto.isAnyProtocol(raw) || WhisperMod.getDmTarget() != null) {
                 ci.cancel();
             }
             return;
@@ -105,9 +103,7 @@ public class ChatListenerMixin {
         Minecraft mc = Minecraft.getInstance();
         String localName = mc.player != null ? mc.player.getName().getString() : null;
         if ("me".equalsIgnoreCase(sender) || (localName != null && localName.equalsIgnoreCase(sender))) {
-            if (MessageCrypto.isRequest(raw) || MessageCrypto.isDecline(raw)
-                    || MessageCrypto.isKeyExchange(raw) || MessageCrypto.isMessage(raw)
-                    || MessageCrypto.isEnd(raw) || WhisperMod.getDmTarget() != null) {
+            if (MessageCrypto.isAnyProtocol(raw) || WhisperMod.getDmTarget() != null) {
                 ci.cancel();
             }
             return;
@@ -146,8 +142,85 @@ public class ChatListenerMixin {
             return;
         }
 
+        // --- Friend request ---
+        if (MessageCrypto.isFriendRequest(raw)) {
+            if (FriendManager.isBlocked(sender)) { ci.cancel(); return; }
+            String token = MessageCrypto.extractToken(raw, MessageCrypto.FRIEND_REQ_PREFIX);
+            String requester = token != null ? token.substring(MessageCrypto.FRIEND_REQ_PREFIX.length()) : sender;
+            FriendManager.addIncoming(requester);
+            mc.player.sendSystemMessage(
+                    Component.literal("[Friend] ").withStyle(ChatFormatting.AQUA)
+                            .append(Component.literal(requester).withStyle(ChatFormatting.AQUA))
+                            .append(Component.literal(" wants to be your friend! ").withStyle(ChatFormatting.WHITE))
+                            .append(Component.literal("[Accept]").withStyle(Style.EMPTY
+                                    .withColor(ChatFormatting.GREEN)
+                                    .withBold(true)
+                                    .withClickEvent(new ClickEvent.RunCommand("/wm accept " + requester))
+                                    .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to accept")))))
+                            .append(Component.literal(" ").withStyle(ChatFormatting.GRAY))
+                            .append(Component.literal("[Decline]").withStyle(Style.EMPTY
+                                    .withColor(ChatFormatting.RED)
+                                    .withBold(true)
+                                    .withClickEvent(new ClickEvent.RunCommand("/wm decline " + requester))
+                                    .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to decline")))))
+            );
+            ci.cancel();
+            return;
+        }
+
+        // --- Friend accepted ---
+        if (MessageCrypto.isFriendAccept(raw)) {
+            String token = MessageCrypto.extractToken(raw, MessageCrypto.FRIEND_ACCEPT_PREFIX);
+            String accepter = token != null ? token.substring(MessageCrypto.FRIEND_ACCEPT_PREFIX.length()) : sender;
+            FriendManager.removeOutgoing(accepter);
+            FriendManager.addFriend(accepter);
+            mc.player.sendSystemMessage(
+                    Component.literal("You and ").withStyle(ChatFormatting.GREEN)
+                            .append(Component.literal(accepter).withStyle(ChatFormatting.AQUA))
+                            .append(Component.literal(" are now friends!").withStyle(ChatFormatting.GREEN))
+            );
+            ci.cancel();
+            return;
+        }
+
+        // --- Friend declined ---
+        if (MessageCrypto.isFriendDecline(raw)) {
+            String token = MessageCrypto.extractToken(raw, MessageCrypto.FRIEND_DECLINE_PREFIX);
+            String decliner = token != null ? token.substring(MessageCrypto.FRIEND_DECLINE_PREFIX.length()) : sender;
+            FriendManager.removeOutgoing(decliner);
+            mc.player.sendSystemMessage(
+                    Component.literal(decliner).withStyle(ChatFormatting.AQUA)
+                            .append(Component.literal(" declined your friend request.").withStyle(ChatFormatting.RED))
+            );
+            ci.cancel();
+            return;
+        }
+
+        // --- Unfriended ---
+        if (MessageCrypto.isUnfriend(raw)) {
+            String token = MessageCrypto.extractToken(raw, MessageCrypto.UNFRIEND_PREFIX);
+            String who = token != null ? token.substring(MessageCrypto.UNFRIEND_PREFIX.length()) : sender;
+            FriendManager.removeFriend(who);
+            if (who.equalsIgnoreCase(WhisperMod.getEmTarget())) {
+                WhisperMod.exitAllSilent();
+                mc.player.sendSystemMessage(
+                        Component.literal("Your encrypted session ended because ").withStyle(ChatFormatting.RED)
+                                .append(Component.literal(who).withStyle(ChatFormatting.AQUA))
+                                .append(Component.literal(" unfriended you.").withStyle(ChatFormatting.RED))
+                );
+            } else {
+                mc.player.sendSystemMessage(
+                        Component.literal(who).withStyle(ChatFormatting.AQUA)
+                                .append(Component.literal(" unfriended you.").withStyle(ChatFormatting.RED))
+                );
+            }
+            ci.cancel();
+            return;
+        }
+
         // --- EM session request ---
         if (MessageCrypto.isRequest(raw)) {
+            if (!FriendManager.isFriend(sender)) { ci.cancel(); return; }
             SessionManager.addIncoming(sender);
             mc.player.sendSystemMessage(
                     Component.literal("[EM] ").withStyle(ChatFormatting.GREEN)
@@ -156,13 +229,13 @@ public class ChatListenerMixin {
                             .append(Component.literal("[Accept]").withStyle(Style.EMPTY
                                     .withColor(ChatFormatting.GREEN)
                                     .withBold(true)
-                                    .withClickEvent(new ClickEvent.RunCommand("/wm em accept " + sender))
+                                    .withClickEvent(new ClickEvent.RunCommand("/wm accept " + sender))
                                     .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to accept")))))
                             .append(Component.literal(" ").withStyle(ChatFormatting.GRAY))
                             .append(Component.literal("[Decline]").withStyle(Style.EMPTY
                                     .withColor(ChatFormatting.RED)
                                     .withBold(true)
-                                    .withClickEvent(new ClickEvent.RunCommand("/wm em decline " + sender))
+                                    .withClickEvent(new ClickEvent.RunCommand("/wm decline " + sender))
                                     .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to decline")))))
             );
             ci.cancel();

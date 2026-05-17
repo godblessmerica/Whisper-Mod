@@ -3,6 +3,7 @@ package com.whispermod;
 import com.whispermod.command.WmCommand;
 import com.whispermod.crypto.MessageCrypto;
 import com.whispermod.crypto.SessionManager;
+import com.whispermod.friends.FriendManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
@@ -32,6 +33,8 @@ public class WhisperMod implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        FriendManager.load();
+
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
                 WmCommand.register(dispatcher));
 
