@@ -142,9 +142,25 @@ public class ChatListenerMixin {
             return;
         }
 
+        // --- Friend blocked response ---
+        if (MessageCrypto.isFriendBlocked(raw)) {
+            mc.player.sendSystemMessage(
+                    Component.literal(sender).withStyle(ChatFormatting.AQUA)
+                            .append(Component.literal(" blocked you. Friend request could not be sent.").withStyle(ChatFormatting.RED))
+            );
+            FriendManager.removeOutgoing(sender);
+            ci.cancel();
+            return;
+        }
+
         // --- Friend request ---
         if (MessageCrypto.isFriendRequest(raw)) {
-            if (FriendManager.isBlocked(sender)) { ci.cancel(); return; }
+            if (FriendManager.isBlocked(sender)) {
+                // Silently notify sender they are blocked
+                mc.getConnection().sendUnattendedCommand("w " + sender + " " + MessageCrypto.FRIEND_BLOCKED_PREFIX, mc.screen);
+                ci.cancel();
+                return;
+            }
             String token = MessageCrypto.extractToken(raw, MessageCrypto.FRIEND_REQ_PREFIX);
             String requester = token != null ? token.substring(MessageCrypto.FRIEND_REQ_PREFIX.length()) : sender;
             FriendManager.addIncoming(requester);
