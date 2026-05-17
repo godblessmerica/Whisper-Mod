@@ -23,8 +23,32 @@ public class FriendManager {
 
     // Pending outgoing friend requests (player we sent to)
     private static final Set<String> outgoingRequests = new HashSet<>();
+    private static final java.util.Map<String, Long> outgoingSentAt = new java.util.HashMap<>();
+
+    public static long outgoingRemainingSeconds(String player) {
+        Long sentAt = outgoingSentAt.entrySet().stream()
+                .filter(e -> e.getKey().equalsIgnoreCase(player))
+                .map(java.util.Map.Entry::getValue)
+                .findFirst().orElse(null);
+        if (sentAt == null) return 0;
+        long remaining = 60_000 - (System.currentTimeMillis() - sentAt);
+        return Math.max(0, remaining / 1000);
+    }
     // Pending incoming friend requests (player who sent to us)
     private static final Set<String> incomingRequests = new HashSet<>();
+    // Mute system
+    private static boolean mutedAll = false;
+    private static final Set<String> mutedPlayers = new HashSet<>();
+
+    public static boolean isMutedAll() { return mutedAll; }
+    public static void setMutedAll(boolean muted) { mutedAll = muted; }
+
+    public static boolean isMuted(String player) {
+        return mutedPlayers.stream().anyMatch(p -> p.equalsIgnoreCase(player));
+    }
+    public static void mute(String player) { mutedPlayers.add(player); }
+    public static void unmute(String player) { mutedPlayers.removeIf(p -> p.equalsIgnoreCase(player)); }
+    public static Set<String> getMuted() { return Collections.unmodifiableSet(mutedPlayers); }
 
     public static void load() {
         try {
@@ -108,8 +132,15 @@ public class FriendManager {
     }
 
     // --- Outgoing friend requests ---
-    public static void addOutgoing(String player) { outgoingRequests.add(player); }
-    public static void removeOutgoing(String player) { outgoingRequests.removeIf(p -> p.equalsIgnoreCase(player)); }
+    public static void addOutgoing(String player) {
+        outgoingRequests.add(player);
+        outgoingSentAt.entrySet().removeIf(e -> e.getKey().equalsIgnoreCase(player));
+        outgoingSentAt.put(player, System.currentTimeMillis());
+    }
+    public static void removeOutgoing(String player) {
+        outgoingRequests.removeIf(p -> p.equalsIgnoreCase(player));
+        outgoingSentAt.entrySet().removeIf(e -> e.getKey().equalsIgnoreCase(player));
+    }
     public static boolean hasOutgoing(String player) { return outgoingRequests.stream().anyMatch(p -> p.equalsIgnoreCase(player)); }
     public static Set<String> getOutgoing() { return Collections.unmodifiableSet(outgoingRequests); }
 

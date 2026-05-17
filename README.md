@@ -7,7 +7,7 @@
 [![Platform](https://img.shields.io/badge/platform-Minecraft%2026.1.2-62B47A?style=flat-square)](#)
 [![Mod Loader](https://img.shields.io/badge/mod%20loader-Fabric-DBD0B4?style=flat-square)](https://fabricmc.net)
 [![License](https://img.shields.io/badge/license-MIT-d580ff?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.4.0-00e5ff?style=flat-square)](../../releases/latest)
+[![Version](https://img.shields.io/badge/version-1.4.1-00e5ff?style=flat-square)](../../releases/latest)
 
 Whisper Mod started as a simple quality-of-life mod to avoid retyping /w every message, and grew into a full private messaging system with end-to-end encryption, a friend system, and a block system - all running entirely on the client side.
 
