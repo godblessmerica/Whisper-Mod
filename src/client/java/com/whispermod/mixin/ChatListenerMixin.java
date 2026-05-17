@@ -57,15 +57,12 @@ public class ChatListenerMixin {
 
         String sender = boundName.replaceAll("[\\[\\]()]+$", "").trim();
 
-        // Incoming DM from our partner via disguised chat (raw is just the message text)
-        String dmTarget = WhisperMod.getDmTarget();
-        if (dmTarget != null && sender.equalsIgnoreCase(dmTarget)
-                && !MessageCrypto.isMessage(raw) && !MessageCrypto.isRequest(raw)
-                && !MessageCrypto.isKeyExchange(raw) && !MessageCrypto.isEnd(raw)
-                && !MessageCrypto.isDecline(raw)) {
+        // Format all incoming whispers as [DM] (disguised chat — raw is just the message text)
+        if (!MessageCrypto.isAnyProtocol(raw)) {
             Minecraft mc = Minecraft.getInstance();
+            boolean isFriend = FriendManager.isFriend(sender);
             mc.player.sendSystemMessage(
-                    Component.literal("[DM] ").withStyle(ChatFormatting.YELLOW)
+                    Component.literal(isFriend ? "[DM ⭐] " : "[DM] ").withStyle(ChatFormatting.YELLOW)
                             .append(Component.literal(sender + ": ").withStyle(ChatFormatting.AQUA))
                             .append(Component.literal(raw).withStyle(ChatFormatting.WHITE))
             );
@@ -126,15 +123,12 @@ public class ChatListenerMixin {
     private static void handleIncoming(String raw, String sender, CallbackInfo ci) {
         Minecraft mc = Minecraft.getInstance();
 
-        // --- Incoming DM from our current DM partner ---
-        String dmTarget = WhisperMod.getDmTarget();
-        if (dmTarget != null && sender.equalsIgnoreCase(dmTarget)
-                && !MessageCrypto.isMessage(raw) && !MessageCrypto.isRequest(raw)
-                && !MessageCrypto.isKeyExchange(raw) && !MessageCrypto.isEnd(raw)
-                && !MessageCrypto.isDecline(raw)) {
+        // --- Format all incoming whispers as [DM] ---
+        if (!MessageCrypto.isAnyProtocol(raw)) {
             String text = extractMessageText(raw, sender);
+            boolean isFriend = FriendManager.isFriend(sender);
             mc.player.sendSystemMessage(
-                    Component.literal("[DM] ").withStyle(ChatFormatting.YELLOW)
+                    Component.literal(isFriend ? "[DM ⭐] " : "[DM] ").withStyle(ChatFormatting.YELLOW)
                             .append(Component.literal(sender + ": ").withStyle(ChatFormatting.AQUA))
                             .append(Component.literal(text != null ? text : raw).withStyle(ChatFormatting.WHITE))
             );
