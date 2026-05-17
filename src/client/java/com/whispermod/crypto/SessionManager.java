@@ -12,6 +12,7 @@ public class SessionManager {
 
     /** Players we sent a WMREQ to and are waiting on. */
     private static final Set<String> outgoingRequests = new HashSet<>();
+    private static final Map<String, Long> outgoingSentAt = new HashMap<>();
 
     /** Players who sent us a WMREQ that we haven't accepted or declined yet. */
     private static final Set<String> incomingRequests = new HashSet<>();
@@ -36,6 +37,7 @@ public class SessionManager {
     // --- Outgoing requests ---
     public static void addOutgoing(String player) {
         outgoingRequests.add(player.toLowerCase());
+        outgoingSentAt.put(player.toLowerCase(), System.currentTimeMillis());
     }
 
     public static boolean hasOutgoing(String player) {
@@ -44,6 +46,14 @@ public class SessionManager {
 
     public static void removeOutgoing(String player) {
         outgoingRequests.remove(player.toLowerCase());
+        outgoingSentAt.remove(player.toLowerCase());
+    }
+
+    public static long outgoingRemainingSeconds(String player) {
+        Long sentAt = outgoingSentAt.get(player.toLowerCase());
+        if (sentAt == null) return 0;
+        long remaining = 30_000 - (System.currentTimeMillis() - sentAt);
+        return Math.max(0, remaining / 1000);
     }
 
     // --- Incoming requests ---

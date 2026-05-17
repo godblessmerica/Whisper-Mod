@@ -165,6 +165,17 @@ public class WmCommand {
                                 return 1;
                             }
 
+                            if (SessionManager.hasOutgoing(player)) {
+                                long secs = SessionManager.outgoingRemainingSeconds(player);
+                                ctx.getSource().sendFeedback(
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal("You already sent an EM request to ").withStyle(ChatFormatting.YELLOW))
+                                                .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
+                                                .append(Component.literal(secs > 0 ? ". Expires in " + secs + "s." : ".").withStyle(ChatFormatting.YELLOW))
+                                );
+                                return 1;
+                            }
+
                             SessionManager.addOutgoing(player);
                             mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.REQ_PREFIX, mc.screen);
 
