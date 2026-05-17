@@ -24,22 +24,22 @@ A client-side Fabric mod that improves private messaging in Minecraft. Send pers
 
 ## Features
 
-### 💬 DM Sessions
+### DM Sessions
 Start a persistent DM session with `/wm dm <player>` — every message you type is automatically sent as a whisper. No more retyping `/w` every time. Messages from friends show a `★` indicator.
 
-### 🔒 Encrypted Messaging
+### Encrypted Messaging
 Use `/wm em <player>` to request an end-to-end encrypted session. Once both players accept, all messages are encrypted using ECDH key exchange + AES-CBC. Nobody else can read them — not even the server.
 
-### 🫂 Friend System
+### Friend System
 Add friends, manage requests, and control who can contact you. EM sessions require both players to be friends first.
 - Friend and EM requests arrive as clickable **[Accept]** / **[Decline]** buttons in chat
 - Friend requests expire after 60 seconds with no response
 - Friend lists are stored locally in `.minecraft/config/whispermod/`
 
-### 🚫 Block System
+### Block System
 Block players from sending you friend or EM requests. Blocking a friend automatically unfriends them and notifies both sides. Players are notified when they try to contact someone who has blocked them.
 
-### 🎨 Consistent UI
+### Consistent UI
 All mod notifications appear under a `[WM]` purple tag. Encrypted messages use `[EM]` in green. DMs use `[DM]` in yellow. Everything is color coded — green for good news, red for bad news.
 
 ## Commands
