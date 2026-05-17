@@ -32,16 +32,18 @@ Use `/wm em <player>` to request an end-to-end encrypted session. Once both play
 
 ### Friend System
 Add friends, manage requests, and control who can contact you. EM sessions require both players to be friends first.
-- Friend and EM requests arrive as clickable **[Accept]** / **[Decline]** buttons in chat
-- Friend requests expire after 60 seconds with no response
+- Friend and EM requests arrive as clickable **[Accept]** / **[Decline]** buttons in chat with sound effects
+- Friend requests expire after 60 seconds, EM requests after 30 seconds
 - Get notified when a friend joins or leaves the server
+- Check who's online with `/wm status`
 - Friend lists are stored locally in `.minecraft/config/whispermod/`
 
 ### Block & Mute System
-Block players from sending you friend or EM requests. Blocking a friend automatically unfriends them and notifies both sides. Muting is a softer option — requests are silently ignored and the sender has no idea.
+- **Block** — prevents someone from sending you friend or EM requests, and notifies them
+- **Mute** — silently ignores friend and EM requests from a player or everyone, they have no idea
 
 ### Consistent UI
-All mod notifications appear under a `[WM]` purple tag. Encrypted messages use `[EM]` in green. DMs use `[DM]` in yellow. Everything is color coded — green for good news, red for bad news. Sound effects play when you receive friend or EM requests.
+All mod notifications appear under a `[WM]` purple tag. Encrypted messages use `[EM]` in green. DMs use `[DM]` in yellow. Everything is color coded — green for good news, red for bad news.
 
 ## Commands
 | Command | Description |
@@ -53,9 +55,9 @@ All mod notifications appear under a `[WM]` purple tag. Encrypted messages use `
 | `/wm friends` | View your friend list |
 | `/wm pending` | View pending outgoing friend requests |
 | `/wm status` | See which friends are online or offline |
-| `/wm mute` | Toggle muting all incoming friend requests |
+| `/wm mute` | Toggle muting all incoming friend and EM requests |
 | `/wm mute <player>` | Silently mute a specific player's requests |
-| `/wm unmute` | Unmute all friend requests |
+| `/wm unmute` | Unmute all requests |
 | `/wm unmute <player>` | Unmute a specific player |
 | `/wm muted` | View muted players and global mute status |
 | `/wm block <player>` | Block someone from sending you requests (must be online) |
