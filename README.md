@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/license-MIT-d580ff?style=flat-square)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.4.0-00e5ff?style=flat-square)](../../releases/latest)
 
-A client-side Fabric mod that improves private messaging in Minecraft. Send persistent DMs, start end-to-end encrypted sessions, and manage a friend list — all without leaving chat. No server installation required.
+Whisper Mod started as a simple quality-of-life mod to avoid retyping /w every message, and grew into a full private messaging system with end-to-end encryption, a friend system, and a block system - all running entirely on the client side.
 
 ## Installation
 1. Install [Fabric Loader](https://fabricmc.net/use/installer/)
