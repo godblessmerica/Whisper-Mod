@@ -467,12 +467,14 @@ public class WmCommand {
                                 return 1;
                             }
 
-                            // Unfriend if needed
+                            // Unfriend and notify them if needed
                             if (FriendManager.isFriend(player)) {
                                 FriendManager.removeFriend(player);
                                 if (player.equalsIgnoreCase(WhisperMod.getEmTarget())) {
                                     WhisperMod.exitAll();
                                 }
+                                String myName = mc.player != null ? mc.player.getName().getString() : "";
+                                mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.UNFRIEND_PREFIX + myName, mc.screen);
                             }
 
                             FriendManager.block(player);
