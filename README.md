@@ -62,7 +62,7 @@ All mod notifications appear under a `[WM]` purple tag. Encrypted messages use `
 
 > **Note:** Unfriending and blocking only work when the target is online so they can be notified.
 
-> **Note:** Friend and block lists are stored locally — deleting your config folder will reset them.
+> ⚠️ **Warning:** Friend and block lists are stored locally in `.minecraft/config/whispermod/`. Deleting this folder, reinstalling the mod, or switching computers will reset all your friends and blocked players.
 
 ## License
 [MIT](LICENSE)
