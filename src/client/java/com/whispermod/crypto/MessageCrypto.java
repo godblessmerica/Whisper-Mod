@@ -19,6 +19,7 @@ public class MessageCrypto {
     public static final String FRIEND_DECLINE_PREFIX = "WMFD:";
     public static final String UNFRIEND_PREFIX      = "WMUF:";
     public static final String FRIEND_BLOCKED_PREFIX = "WMFBL:";
+    public static final String UNBLOCK_PREFIX        = "WMUNBL:";
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -100,11 +101,15 @@ public class MessageCrypto {
         return text != null && text.contains(FRIEND_BLOCKED_PREFIX);
     }
 
+    public static boolean isUnblock(String text) {
+        return text != null && text.contains(UNBLOCK_PREFIX);
+    }
+
     /** Returns true if the message contains any WM protocol prefix */
     public static boolean isAnyProtocol(String text) {
         return isMessage(text) || isKeyExchange(text) || isRequest(text) || isDecline(text)
                 || isEnd(text) || isFriendRequest(text) || isFriendAccept(text)
-                || isFriendDecline(text) || isUnfriend(text) || isFriendBlocked(text);
+                || isFriendDecline(text) || isUnfriend(text) || isFriendBlocked(text) || isUnblock(text);
     }
 
     /**

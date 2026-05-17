@@ -97,6 +97,16 @@ public class FriendManager {
         return Collections.unmodifiableSet(blocked);
     }
 
+    /** Wipes friends and blocked lists from memory and disk. */
+    public static void clearAll() {
+        friends.clear();
+        blocked.clear();
+        outgoingRequests.clear();
+        incomingRequests.clear();
+        saveSet(FRIENDS_FILE, friends);
+        saveSet(BLOCKED_FILE, blocked);
+    }
+
     // --- Outgoing friend requests ---
     public static void addOutgoing(String player) { outgoingRequests.add(player); }
     public static void removeOutgoing(String player) { outgoingRequests.removeIf(p -> p.equalsIgnoreCase(player)); }
