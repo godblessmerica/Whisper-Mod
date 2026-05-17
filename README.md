@@ -35,7 +35,6 @@ Add friends, manage requests, and control who can contact you. EM sessions requi
 - Friend and EM requests arrive as clickable **[Accept]** / **[Decline]** buttons in chat
 - Friend requests expire after 60 seconds with no response
 - Friend lists are stored locally in `.minecraft/config/whispermod/`
->  **Warning:** Friend and block lists are stored locally in `.minecraft/config/whispermod/`. Deleting this folder, reinstalling the mod, or switching computers will reset all your friends and blocked players — which will break it for other people who have you friended and blocked.
 
 ### Block System
 Block players from sending you friend or EM requests. Blocking a friend automatically unfriends them and notifies both sides. Players are notified when they try to contact someone who has blocked them.
