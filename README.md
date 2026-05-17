@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/license-MIT-d580ff?style=flat-square)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.4.1-00e5ff?style=flat-square)](../../releases/latest)
 
-Whisper Mod started as a simple quality-of-life mod to avoid retyping /w every message, and grew into a full private messaging system with end-to-end encryption, a friend system, and a block system - all running entirely on the client side.
+Whisper Mod started as a simple quality-of-life mod to avoid retyping /w every message, and grew into a full private messaging system with end-to-end encryption, a friend system, and a block system — all running entirely on the client side.
 
 ## Installation
 1. Install [Fabric Loader](https://fabricmc.net/use/installer/)
@@ -34,13 +34,14 @@ Use `/wm em <player>` to request an end-to-end encrypted session. Once both play
 Add friends, manage requests, and control who can contact you. EM sessions require both players to be friends first.
 - Friend and EM requests arrive as clickable **[Accept]** / **[Decline]** buttons in chat
 - Friend requests expire after 60 seconds with no response
+- Get notified when a friend joins or leaves the server
 - Friend lists are stored locally in `.minecraft/config/whispermod/`
 
-### Block System
-Block players from sending you friend or EM requests. Blocking a friend automatically unfriends them and notifies both sides. Players are notified when they try to contact someone who has blocked them.
+### Block & Mute System
+Block players from sending you friend or EM requests. Blocking a friend automatically unfriends them and notifies both sides. Muting is a softer option — requests are silently ignored and the sender has no idea.
 
 ### Consistent UI
-All mod notifications appear under a `[WM]` purple tag. Encrypted messages use `[EM]` in green. DMs use `[DM]` in yellow. Everything is color coded — green for good news, red for bad news.
+All mod notifications appear under a `[WM]` purple tag. Encrypted messages use `[EM]` in green. DMs use `[DM]` in yellow. Everything is color coded — green for good news, red for bad news. Sound effects play when you receive friend or EM requests.
 
 ## Commands
 | Command | Description |
@@ -51,6 +52,12 @@ All mod notifications appear under a `[WM]` purple tag. Encrypted messages use `
 | `/wm unfriend <player>` | Remove a friend (notifies them, must be online) |
 | `/wm friends` | View your friend list |
 | `/wm pending` | View pending outgoing friend requests |
+| `/wm status` | See which friends are online or offline |
+| `/wm mute` | Toggle muting all incoming friend requests |
+| `/wm mute <player>` | Silently mute a specific player's requests |
+| `/wm unmute` | Unmute all friend requests |
+| `/wm unmute <player>` | Unmute a specific player |
+| `/wm muted` | View muted players and global mute status |
 | `/wm block <player>` | Block someone from sending you requests (must be online) |
 | `/wm unblock <player>` | Unblock someone (notifies them) |
 | `/wm back` | Return to public chat |
@@ -62,7 +69,7 @@ All mod notifications appear under a `[WM]` purple tag. Encrypted messages use `
 
 > **Note:** Unfriending and blocking only work when the target is online so they can be notified.
 
->  **Warning:** Friend and block lists are stored locally in `.minecraft/config/whispermod/`. Deleting this folder, reinstalling the mod, or switching computers will reset all your friends and blocked players — which will break it for other people who have you friended.
+> ⚠️ **Warning:** Friend and block lists are stored locally in `.minecraft/config/whispermod/`. Deleting this folder, reinstalling the mod, or switching computers will reset all your friends and blocked players — which will break it for other people who have you friended.
 
 ## License
 [MIT](LICENSE)
