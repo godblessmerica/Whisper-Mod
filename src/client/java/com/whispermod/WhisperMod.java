@@ -65,8 +65,8 @@ public class WhisperMod implements ClientModInitializer {
                     );
                 } else {
                     mc.player.sendSystemMessage(
-                            Component.literal("[EM] Warning: secure session not established yet. Message not sent.")
-                                    .withStyle(ChatFormatting.RED)
+                            Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                    .append(Component.literal("Warning: secure session not established yet. Message not sent.").withStyle(ChatFormatting.RED))
                     );
                 }
                 return false;

@@ -7,9 +7,9 @@
 [![Platform](https://img.shields.io/badge/platform-Minecraft%2026.1.2-62B47A?style=flat-square)](#)
 [![Mod Loader](https://img.shields.io/badge/mod%20loader-Fabric-DBD0B4?style=flat-square)](https://fabricmc.net)
 [![License](https://img.shields.io/badge/license-MIT-d580ff?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.3.2-00e5ff?style=flat-square)](../../releases/latest)
+[![Version](https://img.shields.io/badge/version-1.4.0-00e5ff?style=flat-square)](../../releases/latest)
 
-A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm dm` for persistent DM sessions or `/wm em` for end-to-end encrypted conversations — no more retyping `/w` every message. Currently supports Minecraft 26.1.2.
+A client-side Fabric mod that improves private messaging in Minecraft. Send persistent DMs, start end-to-end encrypted sessions, and manage a friend list — all without leaving chat. No server installation required.
 
 ## Installation
 1. Install [Fabric Loader](https://fabricmc.net/use/installer/)
@@ -23,46 +23,46 @@ A client-side Fabric mod that improves private messaging in Minecraft. Use `/wm 
 - Fabric API 0.148.2+
 
 ## Features
-- `/wm dm <player>` — start a persistent DM session, all messages sent as whispers automatically
-- `/wm em <player>` — send an encrypted session request; once accepted, chat starts automatically
-- Switch conversations instantly without retyping anything
-- HUD indicator shows your active session — yellow for DM, green for EM
-- Tab completion suggests online players when typing commands
-- `← Back` button in chat UI to return to public chat instantly
-- `/wm back` to return to public chat from anywhere
-- 100% client-side — works on any server, no ban risk
+
+### 💬 DM Sessions
+Start a persistent DM session with `/wm dm <player>` — every message you type is automatically sent as a whisper. No more retyping `/w` every time. Messages from friends show a `★` indicator.
+
+### 🔒 Encrypted Messaging
+Use `/wm em <player>` to request an end-to-end encrypted session. Once both players accept, all messages are encrypted using ECDH key exchange + AES-CBC. Nobody else can read them — not even the server.
+
+### 🫂 Friend System
+Add friends, manage requests, and control who can contact you. EM sessions require both players to be friends first.
+- Friend and EM requests arrive as clickable **[Accept]** / **[Decline]** buttons in chat
+- Friend requests expire after 60 seconds with no response
+- Friend lists are stored locally in `.minecraft/config/whispermod/`
+
+### 🚫 Block System
+Block players from sending you friend or EM requests. Blocking a friend automatically unfriends them and notifies both sides. Players are notified when they try to contact someone who has blocked them.
+
+### 🎨 Consistent UI
+All mod notifications appear under a `[WM]` purple tag. Encrypted messages use `[EM]` in green. DMs use `[DM]` in yellow. Everything is color coded — green for good news, red for bad news.
 
 ## Commands
 | Command | Description |
 |---|---|
-| `/wm dm <player>` | Start or switch unencrypted DM |
-| `/wm em <player>` | Send an encrypted session request |
-| `/wm em accept <player>` | Accept an incoming encrypted session request |
-| `/wm em decline <player>` | Decline an incoming encrypted session request |
-| `/wm back` | Return to public chat from anywhere |
-| `/wm help` | List all commands |
+| `/wm dm <player>` | Start an unencrypted DM session |
+| `/wm em <player>` | Send an encrypted session request (friends only) |
+| `/wm friend <player>` | Send a friend request |
+| `/wm unfriend <player>` | Remove a friend (notifies them, must be online) |
+| `/wm friends` | View your friend list |
+| `/wm pending` | View pending outgoing friend requests |
+| `/wm block <player>` | Block someone from sending you requests (must be online) |
+| `/wm unblock <player>` | Unblock someone (notifies them) |
+| `/wm back` | Return to public chat |
+| `/wm help` | List all commands with clickable shortcuts |
 
 > `/whispermod` works as an alias for `/wm`
 
-> **Note:** Encrypted sessions (`/wm em`) require both players to have the mod installed.
+> **Note:** Encrypted sessions (`/wm em`) require both players to have the mod installed and be friends.
 
-> **Compatibility:** Currently works best on servers running EssentialsX or similar plugins. Vanilla Minecraft whisper format support is planned for a future update.
+> **Note:** Unfriending and blocking only work when the target is online so they can be notified.
 
-## Roadmap
-
-### ✅ v1.x — Foundation
-Private messaging and end-to-end encryption, all from the client side.
-- v1.1.0 — End-to-end encryption via ECDH key exchange + AES
-- v1.2.0 — Commands restructured under `/wm`, chat UI improvements
-- v1.3.0 — Accept/decline system for encrypted sessions, auto-start chat
-  - v1.3.1 — Bug fixes, back button fix, visual cleanup
-  - v1.3.2 — Encrypted sessions fully fixed, synced session exit
-
-### 🔲 v2.0.0 — Tabbed Chat
-Separate chat tabs for each conversation with unread indicators, mute player, and chat log.
-
-### 🔲 Future — Server Companion Mod *(separate project)*
-Native group DMs, DM request system, and block list — no client install required.
+> **Note:** Friend and block lists are stored locally — deleting your config folder will reset them.
 
 ## License
 [MIT](LICENSE)

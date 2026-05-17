@@ -139,10 +139,22 @@ public class ChatListenerMixin {
         // --- Friend blocked response ---
         if (MessageCrypto.isFriendBlocked(raw)) {
             mc.player.sendSystemMessage(
-                    Component.literal(sender).withStyle(ChatFormatting.AQUA)
-                            .append(Component.literal(" blocked you. Friend request could not be sent.").withStyle(ChatFormatting.RED))
+                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                            .append(Component.literal(sender).withStyle(ChatFormatting.AQUA))
+                            .append(Component.literal(" blocked you.").withStyle(ChatFormatting.RED))
             );
             FriendManager.removeOutgoing(sender);
+            ci.cancel();
+            return;
+        }
+
+        // --- Unblocked ---
+        if (MessageCrypto.isUnblock(raw)) {
+            mc.player.sendSystemMessage(
+                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                            .append(Component.literal(sender).withStyle(ChatFormatting.AQUA))
+                            .append(Component.literal(" unblocked you.").withStyle(ChatFormatting.GREEN))
+            );
             ci.cancel();
             return;
         }
@@ -169,9 +181,9 @@ public class ChatListenerMixin {
             String requester = token != null ? token.substring(MessageCrypto.FRIEND_REQ_PREFIX.length()) : sender;
             FriendManager.addIncoming(requester);
             mc.player.sendSystemMessage(
-                    Component.literal("[Friend] ").withStyle(ChatFormatting.AQUA)
+                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
                             .append(Component.literal(requester).withStyle(ChatFormatting.AQUA))
-                            .append(Component.literal(" wants to be your friend! ").withStyle(ChatFormatting.WHITE))
+                            .append(Component.literal(" wants to be your friend! ").withStyle(ChatFormatting.GREEN))
                             .append(Component.literal("[Accept]").withStyle(Style.EMPTY
                                     .withColor(ChatFormatting.GREEN)
                                     .withBold(true)
@@ -195,7 +207,8 @@ public class ChatListenerMixin {
             FriendManager.removeOutgoing(accepter);
             FriendManager.addFriend(accepter);
             mc.player.sendSystemMessage(
-                    Component.literal("You and ").withStyle(ChatFormatting.GREEN)
+                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                            .append(Component.literal("You and ").withStyle(ChatFormatting.GREEN))
                             .append(Component.literal(accepter).withStyle(ChatFormatting.AQUA))
                             .append(Component.literal(" are now friends!").withStyle(ChatFormatting.GREEN))
             );
@@ -209,7 +222,8 @@ public class ChatListenerMixin {
             String decliner = token != null ? token.substring(MessageCrypto.FRIEND_DECLINE_PREFIX.length()) : sender;
             FriendManager.removeOutgoing(decliner);
             mc.player.sendSystemMessage(
-                    Component.literal(decliner).withStyle(ChatFormatting.AQUA)
+                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                            .append(Component.literal(decliner).withStyle(ChatFormatting.AQUA))
                             .append(Component.literal(" declined your friend request.").withStyle(ChatFormatting.RED))
             );
             ci.cancel();
@@ -224,13 +238,14 @@ public class ChatListenerMixin {
             if (who.equalsIgnoreCase(WhisperMod.getEmTarget())) {
                 WhisperMod.exitAllSilent();
                 mc.player.sendSystemMessage(
-                        Component.literal("Your encrypted session ended because ").withStyle(ChatFormatting.RED)
+                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
                                 .append(Component.literal(who).withStyle(ChatFormatting.AQUA))
-                                .append(Component.literal(" unfriended you.").withStyle(ChatFormatting.RED))
+                                .append(Component.literal(" unfriended you — encrypted session ended.").withStyle(ChatFormatting.RED))
                 );
             } else {
                 mc.player.sendSystemMessage(
-                        Component.literal(who).withStyle(ChatFormatting.AQUA)
+                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                .append(Component.literal(who).withStyle(ChatFormatting.AQUA))
                                 .append(Component.literal(" unfriended you.").withStyle(ChatFormatting.RED))
                 );
             }
@@ -243,7 +258,7 @@ public class ChatListenerMixin {
             if (!FriendManager.isFriend(sender)) { ci.cancel(); return; }
             SessionManager.addIncoming(sender);
             mc.player.sendSystemMessage(
-                    Component.literal("[EM] ").withStyle(ChatFormatting.GREEN)
+                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
                             .append(Component.literal(sender).withStyle(ChatFormatting.AQUA))
                             .append(Component.literal(" wants to start an encrypted session. ").withStyle(ChatFormatting.GREEN))
                             .append(Component.literal("[Accept]").withStyle(Style.EMPTY
@@ -267,9 +282,9 @@ public class ChatListenerMixin {
             WhisperMod.exitAllSilent();
             SessionManager.remove(sender);
             mc.player.sendSystemMessage(
-                    Component.literal("[EM] ").withStyle(ChatFormatting.GRAY)
+                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
                             .append(Component.literal(sender).withStyle(ChatFormatting.AQUA))
-                            .append(Component.literal(" ended the encrypted session.").withStyle(ChatFormatting.GRAY))
+                            .append(Component.literal(" ended the encrypted session.").withStyle(ChatFormatting.RED))
             );
             ci.cancel();
             return;
@@ -280,7 +295,7 @@ public class ChatListenerMixin {
             SessionManager.removeOutgoing(sender);
             SessionManager.remove(sender);
             mc.player.sendSystemMessage(
-                    Component.literal("[EM] ").withStyle(ChatFormatting.RED)
+                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
                             .append(Component.literal(sender).withStyle(ChatFormatting.AQUA))
                             .append(Component.literal(" declined your encrypted session request.").withStyle(ChatFormatting.RED))
             );
@@ -316,10 +331,10 @@ public class ChatListenerMixin {
                 WhisperMod.setEmTarget(sender);
 
                 mc.player.sendSystemMessage(
-                        Component.literal("[EM] Secure session established with ")
-                                .withStyle(ChatFormatting.GREEN)
+                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                .append(Component.literal("Secure session established with ").withStyle(ChatFormatting.GREEN))
                                 .append(Component.literal(sender).withStyle(ChatFormatting.AQUA))
-                                .append(Component.literal(" — you are now in encrypted chat.").withStyle(ChatFormatting.GRAY))
+                                .append(Component.literal(" — you are now in encrypted chat.").withStyle(ChatFormatting.GREEN))
                 );
             }
 

@@ -29,17 +29,16 @@ public class WmCommand {
         wm.then(ClientCommands.literal("help")
                 .executes(ctx -> {
                     ctx.getSource().sendFeedback(Component.literal("--- Whisper Mod Commands ---").withStyle(ChatFormatting.AQUA));
-                    sendClickable(ctx.getSource(), "/wm dm <player>", "Start an unencrypted DM session", ChatFormatting.YELLOW);
-                    sendClickable(ctx.getSource(), "/wm em <player>", "Send an encrypted session request (friends only)", ChatFormatting.GREEN);
-                    sendClickable(ctx.getSource(), "/wm accept <player>", "Accept a friend or EM request", ChatFormatting.GREEN);
-                    sendClickable(ctx.getSource(), "/wm decline <player>", "Decline a friend or EM request", ChatFormatting.RED);
-                    sendClickable(ctx.getSource(), "/wm addfriend <player>", "Send a friend request", ChatFormatting.AQUA);
-                    sendClickable(ctx.getSource(), "/wm unfriend <player>", "Remove a friend", ChatFormatting.RED);
-                    sendClickable(ctx.getSource(), "/wm friends", "View your friend list", ChatFormatting.AQUA);
-                    sendClickable(ctx.getSource(), "/wm pending", "View pending outgoing friend requests", ChatFormatting.YELLOW);
-                    sendClickable(ctx.getSource(), "/wm block <player>", "Block someone from sending you requests", ChatFormatting.RED);
-                    sendClickable(ctx.getSource(), "/wm unblock <player>", "Unblock someone", ChatFormatting.YELLOW);
-                    sendClickable(ctx.getSource(), "/wm back", "Return to public chat", ChatFormatting.YELLOW);
+                    sendClickable(ctx.getSource(), "/wm dm <player>",       "Start an unencrypted DM session",                  ChatFormatting.YELLOW);
+                    sendClickable(ctx.getSource(), "/wm em <player>",       "Send an encrypted session request (friends only)", ChatFormatting.GREEN);
+                    sendClickable(ctx.getSource(), "/wm friend <player>",   "Send a friend request",                            ChatFormatting.AQUA);
+                    sendClickable(ctx.getSource(), "/wm unfriend <player>", "Remove a friend",                                  ChatFormatting.RED);
+                    sendClickable(ctx.getSource(), "/wm friends",           "View your friend list",                            ChatFormatting.AQUA);
+                    sendClickable(ctx.getSource(), "/wm pending",           "View pending outgoing friend requests",            ChatFormatting.YELLOW);
+                    sendClickable(ctx.getSource(), "/wm block <player>",    "Block someone from sending you requests",          ChatFormatting.RED);
+                    sendClickable(ctx.getSource(), "/wm unblock <player>",  "Unblock someone",                                 ChatFormatting.YELLOW);
+                    sendClickable(ctx.getSource(), "/wm back",              "Return to public chat",                           ChatFormatting.YELLOW);
+                    sendClickable(ctx.getSource(), "/wm clearconfig",       "Clear all saved friends and blocked players",      ChatFormatting.RED);
                     ctx.getSource().sendFeedback(Component.literal("Note: Friend list is stored locally — reinstalling the mod will clear it.").withStyle(ChatFormatting.DARK_GRAY));
                     return 1;
                 })
@@ -146,9 +145,10 @@ public class WmCommand {
                             mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.REQ_PREFIX, mc.screen);
 
                             ctx.getSource().sendFeedback(
-                                    Component.literal("[EM] Encrypted session request sent to ").withStyle(ChatFormatting.GREEN)
+                                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                            .append(Component.literal("Encrypted session request sent to ").withStyle(ChatFormatting.GREEN))
                                             .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
-                                            .append(Component.literal(". Waiting for them to accept...").withStyle(ChatFormatting.GRAY))
+                                            .append(Component.literal(". Waiting for them to accept...").withStyle(ChatFormatting.GREEN))
                             );
 
                             // 30 second timeout
@@ -158,7 +158,8 @@ public class WmCommand {
                                     if (SessionManager.hasOutgoing(player)) {
                                         SessionManager.removeOutgoing(player);
                                         mc.execute(() -> mc.player.sendSystemMessage(
-                                                Component.literal("[EM] No response from ").withStyle(ChatFormatting.RED)
+                                                Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                        .append(Component.literal("No response from ").withStyle(ChatFormatting.RED))
                                                         .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                                         .append(Component.literal(" — they may not have the mod installed.").withStyle(ChatFormatting.RED))
                                         ));
@@ -209,7 +210,8 @@ public class WmCommand {
                                 // Notify sender via protocol message
                                 mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.FRIEND_ACCEPT_PREFIX + myName, mc.screen);
                                 ctx.getSource().sendFeedback(
-                                        Component.literal("You and ").withStyle(ChatFormatting.GREEN)
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal("You and ").withStyle(ChatFormatting.GREEN))
                                                 .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                                 .append(Component.literal(" are now friends!").withStyle(ChatFormatting.GREEN))
                                 );
@@ -217,7 +219,8 @@ public class WmCommand {
                             }
 
                             ctx.getSource().sendFeedback(
-                                    Component.literal("No pending request from ").withStyle(ChatFormatting.RED)
+                                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                            .append(Component.literal("No pending request from ").withStyle(ChatFormatting.RED))
                                             .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                             .append(Component.literal(".").withStyle(ChatFormatting.RED))
                             );
@@ -243,7 +246,8 @@ public class WmCommand {
                                 SessionManager.removeIncoming(player);
                                 mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.DECL_PREFIX, mc.screen);
                                 ctx.getSource().sendFeedback(
-                                        Component.literal("You declined ").withStyle(ChatFormatting.RED)
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal("You declined ").withStyle(ChatFormatting.RED))
                                                 .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                                 .append(Component.literal("'s encrypted session request.").withStyle(ChatFormatting.RED))
                                 );
@@ -256,7 +260,8 @@ public class WmCommand {
                                 String myName = mc.player != null ? mc.player.getName().getString() : "you";
                                 mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.FRIEND_DECLINE_PREFIX + myName, mc.screen);
                                 ctx.getSource().sendFeedback(
-                                        Component.literal("You declined ").withStyle(ChatFormatting.RED)
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal("You declined ").withStyle(ChatFormatting.RED))
                                                 .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                                 .append(Component.literal("'s friend request.").withStyle(ChatFormatting.RED))
                                 );
@@ -264,19 +269,20 @@ public class WmCommand {
                             }
 
                             ctx.getSource().sendFeedback(
-                                    Component.literal("No pending request from ").withStyle(ChatFormatting.RED)
+                                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                            .append(Component.literal("No pending request from ").withStyle(ChatFormatting.WHITE))
                                             .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
-                                            .append(Component.literal(".").withStyle(ChatFormatting.RED))
+                                            .append(Component.literal(".").withStyle(ChatFormatting.WHITE))
                             );
                             return 1;
                         })
                 )
         );
 
-        // /wm addfriend <player>
-        wm.then(ClientCommands.literal("addfriend")
+        // /wm friend <player>
+        wm.then(ClientCommands.literal("friend")
                 .executes(ctx -> {
-                    ctx.getSource().sendFeedback(Component.literal("Usage: /wm addfriend <player>").withStyle(ChatFormatting.GRAY));
+                    ctx.getSource().sendFeedback(Component.literal("Usage: /wm friend <player>").withStyle(ChatFormatting.GRAY));
                     return 1;
                 })
                 .then(ClientCommands.argument("player", StringArgumentType.word())
@@ -287,13 +293,14 @@ public class WmCommand {
                             String localName = mc.player != null ? mc.player.getName().getString() : "";
 
                             if (player.equalsIgnoreCase(localName)) {
-                                ctx.getSource().sendFeedback(Component.literal("You can't friend yourself.").withStyle(ChatFormatting.RED));
+                                ctx.getSource().sendFeedback(Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE).append(Component.literal("You can't friend yourself.").withStyle(ChatFormatting.RED)));
                                 return 1;
                             }
 
                             if (FriendManager.isFriend(player)) {
                                 ctx.getSource().sendFeedback(
-                                        Component.literal("You are already friends with ").withStyle(ChatFormatting.YELLOW)
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal("You are already friends with ").withStyle(ChatFormatting.YELLOW))
                                                 .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                                 .append(Component.literal(".").withStyle(ChatFormatting.YELLOW))
                                 );
@@ -302,7 +309,8 @@ public class WmCommand {
 
                             if (FriendManager.hasOutgoing(player)) {
                                 ctx.getSource().sendFeedback(
-                                        Component.literal("You already sent a friend request to ").withStyle(ChatFormatting.YELLOW)
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal("You already sent a friend request to ").withStyle(ChatFormatting.YELLOW))
                                                 .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                                 .append(Component.literal(".").withStyle(ChatFormatting.YELLOW))
                                 );
@@ -311,7 +319,8 @@ public class WmCommand {
 
                             if (FriendManager.isBlocked(player)) {
                                 ctx.getSource().sendFeedback(
-                                        Component.literal("You have blocked ").withStyle(ChatFormatting.RED)
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal("You have blocked ").withStyle(ChatFormatting.RED))
                                                 .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                                 .append(Component.literal(". Unblock them first.").withStyle(ChatFormatting.RED))
                                 );
@@ -325,7 +334,8 @@ public class WmCommand {
                                 String myName = mc.player != null ? mc.player.getName().getString() : "you";
                                 mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.FRIEND_ACCEPT_PREFIX + myName, mc.screen);
                                 ctx.getSource().sendFeedback(
-                                        Component.literal("You and ").withStyle(ChatFormatting.GREEN)
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal("You and ").withStyle(ChatFormatting.GREEN))
                                                 .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                                 .append(Component.literal(" are now friends!").withStyle(ChatFormatting.GREEN))
                                 );
@@ -337,9 +347,10 @@ public class WmCommand {
                             mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.FRIEND_REQ_PREFIX + myName, mc.screen);
 
                             ctx.getSource().sendFeedback(
-                                    Component.literal("Friend request sent to ").withStyle(ChatFormatting.AQUA)
+                                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                            .append(Component.literal("Friend request sent to ").withStyle(ChatFormatting.GREEN))
                                             .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
-                                            .append(Component.literal(".").withStyle(ChatFormatting.AQUA))
+                                            .append(Component.literal(".").withStyle(ChatFormatting.GREEN))
                             );
 
                             // 60 second timeout
@@ -349,9 +360,10 @@ public class WmCommand {
                                     if (FriendManager.hasOutgoing(player)) {
                                         FriendManager.removeOutgoing(player);
                                         mc.execute(() -> mc.player.sendSystemMessage(
-                                                Component.literal("Friend request to ").withStyle(ChatFormatting.YELLOW)
+                                                Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                        .append(Component.literal("Friend request to ").withStyle(ChatFormatting.RED))
                                                         .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
-                                                        .append(Component.literal(" expired.").withStyle(ChatFormatting.YELLOW))
+                                                        .append(Component.literal(" expired.").withStyle(ChatFormatting.RED))
                                         ));
                                     }
                                 }
@@ -376,8 +388,18 @@ public class WmCommand {
 
                             if (!FriendManager.isFriend(player)) {
                                 ctx.getSource().sendFeedback(
-                                        Component.literal(player).withStyle(ChatFormatting.AQUA)
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                                 .append(Component.literal(" is not in your friend list.").withStyle(ChatFormatting.RED))
+                                );
+                                return 1;
+                            }
+
+                            if (!isOnline(player)) {
+                                ctx.getSource().sendFeedback(
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
+                                                .append(Component.literal(" is not online. You can only unfriend online players.").withStyle(ChatFormatting.RED))
                                 );
                                 return 1;
                             }
@@ -388,9 +410,10 @@ public class WmCommand {
                             if (player.equalsIgnoreCase(WhisperMod.getEmTarget())) {
                                 WhisperMod.exitAll();
                                 mc.player.sendSystemMessage(
-                                        Component.literal("Your encrypted session with ").withStyle(ChatFormatting.RED)
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal("Encrypted session with ").withStyle(ChatFormatting.RED))
                                                 .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
-                                                .append(Component.literal(" ended because you are no longer friends.").withStyle(ChatFormatting.RED))
+                                                .append(Component.literal(" ended — you are no longer friends.").withStyle(ChatFormatting.RED))
                                 );
                             }
 
@@ -399,7 +422,8 @@ public class WmCommand {
                             mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.UNFRIEND_PREFIX + myName, mc.screen);
 
                             ctx.getSource().sendFeedback(
-                                    Component.literal("You unfriended ").withStyle(ChatFormatting.RED)
+                                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                            .append(Component.literal("You unfriended ").withStyle(ChatFormatting.RED))
                                             .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                             .append(Component.literal(".").withStyle(ChatFormatting.RED))
                             );
@@ -455,19 +479,29 @@ public class WmCommand {
                             String localName = mc.player != null ? mc.player.getName().getString() : "";
 
                             if (player.equalsIgnoreCase(localName)) {
-                                ctx.getSource().sendFeedback(Component.literal("You can't block yourself.").withStyle(ChatFormatting.RED));
+                                ctx.getSource().sendFeedback(Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE).append(Component.literal("You can't block yourself.").withStyle(ChatFormatting.RED)));
                                 return 1;
                             }
 
                             if (FriendManager.isBlocked(player)) {
                                 ctx.getSource().sendFeedback(
-                                        Component.literal(player).withStyle(ChatFormatting.AQUA)
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                                 .append(Component.literal(" is already blocked.").withStyle(ChatFormatting.RED))
                                 );
                                 return 1;
                             }
 
-                            // Unfriend and notify them if needed
+                            if (!isOnline(player)) {
+                                ctx.getSource().sendFeedback(
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
+                                                .append(Component.literal(" is not online.").withStyle(ChatFormatting.RED))
+                                );
+                                return 1;
+                            }
+
+                            // Unfriend if needed, then always notify they're blocked
                             if (FriendManager.isFriend(player)) {
                                 FriendManager.removeFriend(player);
                                 if (player.equalsIgnoreCase(WhisperMod.getEmTarget())) {
@@ -476,10 +510,12 @@ public class WmCommand {
                                 String myName = mc.player != null ? mc.player.getName().getString() : "";
                                 mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.UNFRIEND_PREFIX + myName, mc.screen);
                             }
+                            mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.FRIEND_BLOCKED_PREFIX, mc.screen);
 
                             FriendManager.block(player);
                             ctx.getSource().sendFeedback(
-                                    Component.literal("You blocked ").withStyle(ChatFormatting.RED)
+                                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                            .append(Component.literal("You blocked ").withStyle(ChatFormatting.RED))
                                             .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                             .append(Component.literal(". They can no longer send you requests.").withStyle(ChatFormatting.RED))
                             );
@@ -501,21 +537,38 @@ public class WmCommand {
 
                             if (!FriendManager.isBlocked(player)) {
                                 ctx.getSource().sendFeedback(
-                                        Component.literal(player).withStyle(ChatFormatting.AQUA)
+                                        Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                                 .append(Component.literal(" is not blocked.").withStyle(ChatFormatting.RED))
                                 );
                                 return 1;
                             }
 
+                            Minecraft mc2 = Minecraft.getInstance();
+                            if (mc2.getConnection() != null) {
+                                mc2.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.UNBLOCK_PREFIX, mc2.screen);
+                            }
                             FriendManager.unblock(player);
                             ctx.getSource().sendFeedback(
-                                    Component.literal("You unblocked ").withStyle(ChatFormatting.YELLOW)
+                                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                            .append(Component.literal("You unblocked ").withStyle(ChatFormatting.GREEN))
                                             .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
-                                            .append(Component.literal(".").withStyle(ChatFormatting.YELLOW))
+                                            .append(Component.literal(".").withStyle(ChatFormatting.GREEN))
                             );
                             return 1;
                         })
                 )
+        );
+
+        // /wm clearconfig — disabled until offline notification is solved
+        wm.then(ClientCommands.literal("clearconfig")
+                .executes(ctx -> {
+                    ctx.getSource().sendFeedback(
+                            Component.literal("⚠ /wm clearconfig is currently disabled. Offline friends cannot be notified when you clear your config.")
+                                    .withStyle(ChatFormatting.RED)
+                    );
+                    return 1;
+                })
         );
 
         // /wm with no args
@@ -530,12 +583,20 @@ public class WmCommand {
 
     private static void sendClickable(FabricClientCommandSource source, String command, String description, ChatFormatting color) {
         source.sendFeedback(
-                Component.literal(command).withStyle(Style.EMPTY
-                        .withColor(color)
-                        .withClickEvent(new ClickEvent.SuggestCommand(command))
-                        .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to use"))))
+                Component.literal("• ").withStyle(color)
+                        .append(Component.literal(command).withStyle(Style.EMPTY
+                                .withColor(ChatFormatting.WHITE)
+                                .withClickEvent(new ClickEvent.SuggestCommand(command))
+                                .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to use")))))
                         .append(Component.literal(" — " + description).withStyle(ChatFormatting.GRAY))
         );
+    }
+
+    private static boolean isOnline(String player) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.getConnection() == null) return false;
+        return mc.getConnection().getOnlinePlayers().stream()
+                .anyMatch(info -> info.getProfile().name().equalsIgnoreCase(player));
     }
 
     private static CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggestPlayers(
@@ -568,7 +629,7 @@ public class WmCommand {
             com.mojang.brigadier.suggestion.SuggestionsBuilder builder) {
         String remaining = builder.getRemaining().toLowerCase();
         for (String friend : FriendManager.getFriends()) {
-            if (friend.toLowerCase().startsWith(remaining)) {
+            if (friend.toLowerCase().startsWith(remaining) && isOnline(friend)) {
                 builder.suggest(friend);
             }
         }
