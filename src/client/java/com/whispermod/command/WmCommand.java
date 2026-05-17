@@ -351,7 +351,7 @@ public class WmCommand {
                                         mc.execute(() -> mc.player.sendSystemMessage(
                                                 Component.literal("Your friend request to ").withStyle(ChatFormatting.YELLOW)
                                                         .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
-                                                        .append(Component.literal(" expired.").withStyle(ChatFormatting.YELLOW))
+                                                        .append(Component.literal(" expired — they may not have the mod, or may have blocked you.").withStyle(ChatFormatting.YELLOW))
                                         ));
                                     }
                                 }

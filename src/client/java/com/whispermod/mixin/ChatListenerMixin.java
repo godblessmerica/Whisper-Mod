@@ -150,8 +150,18 @@ public class ChatListenerMixin {
         // --- Friend request ---
         if (MessageCrypto.isFriendRequest(raw)) {
             if (FriendManager.isBlocked(sender)) {
-                // Silently notify sender they are blocked
-                mc.getConnection().sendUnattendedCommand("w " + sender + " " + MessageCrypto.FRIEND_BLOCKED_PREFIX, mc.screen);
+                // Silently notify sender they are blocked — delay to get off the mixin thread
+                final String blockedSender = sender;
+                new java.util.Timer().schedule(new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        mc.execute(() -> {
+                            if (mc.getConnection() != null) {
+                                mc.getConnection().sendUnattendedCommand("w " + blockedSender + " " + MessageCrypto.FRIEND_BLOCKED_PREFIX, null);
+                            }
+                        });
+                    }
+                }, 500);
                 ci.cancel();
                 return;
             }
