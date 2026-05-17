@@ -151,7 +151,7 @@ public class ChatListenerMixin {
         if (MessageCrypto.isFriendRequest(raw)) {
             if (FriendManager.isBlocked(sender)) {
                 // Silently notify sender they are blocked
-                mc.execute(() -> mc.getConnection().sendUnattendedCommand("w " + sender + " " + MessageCrypto.FRIEND_BLOCKED_PREFIX, mc.screen));
+                mc.getConnection().sendUnattendedCommand("w " + sender + " " + MessageCrypto.FRIEND_BLOCKED_PREFIX, mc.screen);
                 ci.cancel();
                 return;
             }
