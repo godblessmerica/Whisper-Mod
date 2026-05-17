@@ -62,7 +62,7 @@ public class ChatListenerMixin {
             Minecraft mc = Minecraft.getInstance();
             boolean isFriend = FriendManager.isFriend(sender);
             mc.player.sendSystemMessage(
-                    Component.literal(isFriend ? "[DM ⭐] " : "[DM] ").withStyle(ChatFormatting.YELLOW)
+                    Component.literal(isFriend ? "[DM ★] " : "[DM] ").withStyle(ChatFormatting.YELLOW)
                             .append(Component.literal(sender + ": ").withStyle(ChatFormatting.AQUA))
                             .append(Component.literal(raw).withStyle(ChatFormatting.WHITE))
             );
@@ -128,7 +128,7 @@ public class ChatListenerMixin {
             String text = extractMessageText(raw, sender);
             boolean isFriend = FriendManager.isFriend(sender);
             mc.player.sendSystemMessage(
-                    Component.literal(isFriend ? "[DM ⭐] " : "[DM] ").withStyle(ChatFormatting.YELLOW)
+                    Component.literal(isFriend ? "[DM ★] " : "[DM] ").withStyle(ChatFormatting.YELLOW)
                             .append(Component.literal(sender + ": ").withStyle(ChatFormatting.AQUA))
                             .append(Component.literal(text != null ? text : raw).withStyle(ChatFormatting.WHITE))
             );
@@ -151,7 +151,7 @@ public class ChatListenerMixin {
         if (MessageCrypto.isFriendRequest(raw)) {
             if (FriendManager.isBlocked(sender)) {
                 // Silently notify sender they are blocked
-                mc.getConnection().sendUnattendedCommand("w " + sender + " " + MessageCrypto.FRIEND_BLOCKED_PREFIX, mc.screen);
+                mc.execute(() -> mc.getConnection().sendUnattendedCommand("w " + sender + " " + MessageCrypto.FRIEND_BLOCKED_PREFIX, mc.screen));
                 ci.cancel();
                 return;
             }
@@ -300,7 +300,7 @@ public class ChatListenerMixin {
                     SessionManager.removeOutgoing(sender);
                     session.markInitiated();
                     String kxReply = MessageCrypto.KX_PREFIX + session.getPublicKeyBase64();
-                    mc.getConnection().sendUnattendedCommand("w " + sender + " " + kxReply, mc.screen);
+                    mc.execute(() -> mc.getConnection().sendUnattendedCommand("w " + sender + " " + kxReply, mc.screen));
                 }
 
                 WhisperMod.setEmTarget(sender);
