@@ -37,10 +37,10 @@ public class WmCommand {
                     sendClickable(ctx.getSource(), "/wm pending",           "View pending outgoing friend requests",            ChatFormatting.YELLOW);
                     sendClickable(ctx.getSource(), "/wm status",            "See which friends are online",                     ChatFormatting.AQUA);
                     sendClickable(ctx.getSource(), "/wm muted",             "View muted players and global mute status",        ChatFormatting.YELLOW);
-                    sendClickable(ctx.getSource(), "/wm mute",              "Toggle muting all friend requests",                ChatFormatting.RED);
-                    sendClickable(ctx.getSource(), "/wm mute <player>",    "Mute friend requests from a specific player",      ChatFormatting.RED);
-                    sendClickable(ctx.getSource(), "/wm unmute",           "Unmute all friend requests",                       ChatFormatting.YELLOW);
-                    sendClickable(ctx.getSource(), "/wm unmute <player>",  "Unmute friend requests from a specific player",    ChatFormatting.YELLOW);
+                    sendClickable(ctx.getSource(), "/wm mute",              "Toggle muting all incoming requests",              ChatFormatting.RED);
+                    sendClickable(ctx.getSource(), "/wm mute <player>",    "Mute incoming requests from a specific player",    ChatFormatting.RED);
+                    sendClickable(ctx.getSource(), "/wm unmute",           "Unmute all incoming requests",                     ChatFormatting.YELLOW);
+                    sendClickable(ctx.getSource(), "/wm unmute <player>",  "Unmute incoming requests from a specific player",  ChatFormatting.YELLOW);
                     sendClickable(ctx.getSource(), "/wm block <player>",   "Block someone from sending you requests",          ChatFormatting.RED);
                     sendClickable(ctx.getSource(), "/wm unblock <player>",  "Unblock someone",                                 ChatFormatting.YELLOW);
                     sendClickable(ctx.getSource(), "/wm back",              "Return to public chat",                           ChatFormatting.YELLOW);
@@ -515,7 +515,7 @@ public class WmCommand {
                 .executes(ctx -> {
                     if (FriendManager.isMutedAll()) {
                         ctx.getSource().sendFeedback(Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
-                                .append(Component.literal("⚠ All friend requests are currently muted.").withStyle(ChatFormatting.RED)));
+                                .append(Component.literal("⚠ All incoming requests are currently muted.").withStyle(ChatFormatting.RED)));
                     }
                     Set<String> friends = FriendManager.getFriends();
                     if (friends.isEmpty()) {
@@ -539,11 +539,19 @@ public class WmCommand {
         // /wm mute [player]
         wm.then(ClientCommands.literal("mute")
                 .executes(ctx -> {
-                    boolean now = !FriendManager.isMutedAll();
-                    FriendManager.setMutedAll(now);
+                    if (FriendManager.isMutedAll()) {
+                        ctx.getSource().sendFeedback(
+                                Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                        .append(Component.literal("All incoming requests are already muted. Use ").withStyle(ChatFormatting.RED))
+                                        .append(Component.literal("/wm unmute").withStyle(ChatFormatting.YELLOW))
+                                        .append(Component.literal(" to unmute.").withStyle(ChatFormatting.RED))
+                        );
+                        return 1;
+                    }
+                    FriendManager.setMutedAll(true);
                     ctx.getSource().sendFeedback(
                             Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
-                                    .append(Component.literal(now ? "All friend requests muted." : "Friend requests unmuted.").withStyle(now ? ChatFormatting.RED : ChatFormatting.GREEN))
+                                    .append(Component.literal("All incoming requests muted.").withStyle(ChatFormatting.RED))
                     );
                     return 1;
                 })
@@ -562,7 +570,7 @@ public class WmCommand {
                             FriendManager.mute(player);
                             ctx.getSource().sendFeedback(
                                     Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
-                                            .append(Component.literal("Muted friend requests from ").withStyle(ChatFormatting.RED))
+                                            .append(Component.literal("Muted incoming requests from ").withStyle(ChatFormatting.RED))
                                             .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                             .append(Component.literal(".").withStyle(ChatFormatting.RED))
                             );
@@ -576,12 +584,12 @@ public class WmCommand {
                 .executes(ctx -> {
                     if (!FriendManager.isMutedAll()) {
                         ctx.getSource().sendFeedback(Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
-                                .append(Component.literal("Friend requests are not globally muted.").withStyle(ChatFormatting.RED)));
+                                .append(Component.literal("Incoming requests are not globally muted.").withStyle(ChatFormatting.RED)));
                         return 1;
                     }
                     FriendManager.setMutedAll(false);
                     ctx.getSource().sendFeedback(Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
-                            .append(Component.literal("Friend requests unmuted.").withStyle(ChatFormatting.GREEN)));
+                            .append(Component.literal("Incoming requests unmuted.").withStyle(ChatFormatting.GREEN)));
                     return 1;
                 })
                 .then(ClientCommands.argument("player", StringArgumentType.word())
@@ -599,7 +607,7 @@ public class WmCommand {
                             FriendManager.unmute(player);
                             ctx.getSource().sendFeedback(
                                     Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
-                                            .append(Component.literal("Unmuted friend requests from ").withStyle(ChatFormatting.GREEN))
+                                            .append(Component.literal("Unmuted incoming requests from ").withStyle(ChatFormatting.GREEN))
                                             .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
                                             .append(Component.literal(".").withStyle(ChatFormatting.GREEN))
                             );
@@ -614,7 +622,7 @@ public class WmCommand {
                     Set<String> muted = FriendManager.getMuted();
                     if (FriendManager.isMutedAll()) {
                         ctx.getSource().sendFeedback(Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
-                                .append(Component.literal("All friend requests are currently muted.").withStyle(ChatFormatting.RED)));
+                                .append(Component.literal("All incoming requests are currently muted.").withStyle(ChatFormatting.RED)));
                     }
                     if (muted.isEmpty() && !FriendManager.isMutedAll()) {
                         ctx.getSource().sendFeedback(Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
