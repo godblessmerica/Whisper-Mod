@@ -14,7 +14,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Mixin(ClientPacketListener.class)
@@ -23,13 +25,13 @@ public class PlayerJoinMixin {
     private static final Map<String, Long> recentLeave = new HashMap<>();
     private static final long DEDUPE_MS = 1000;
 
-    // Timestamp of when we joined the server — used to suppress the initial bulk player list sync
-    private static long serverJoinTime = 0;
-    private static final long JOIN_GRACE_MS = 3000;
+    // Track UUIDs we've already seen — any UUID in this set is pre-existing, not a new join
+    private static final Set<UUID> knownPlayers = new HashSet<>();
 
     @Inject(method = "handleLogin", at = @At("TAIL"))
     private void onLogin(ClientboundLoginPacket packet, CallbackInfo ci) {
-        serverJoinTime = System.currentTimeMillis();
+        // Fresh server connection — clear known player tracking
+        knownPlayers.clear();
     }
 
     @Inject(method = "handlePlayerInfoUpdate", at = @At("TAIL"))
@@ -39,14 +41,15 @@ public class PlayerJoinMixin {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.getConnection() == null) return;
 
-        // Suppress notifications during the initial bulk sync right after joining
-        if (System.currentTimeMillis() - serverJoinTime < JOIN_GRACE_MS) return;
-
         String localName = mc.player.getName().getString();
 
         for (ClientboundPlayerInfoUpdatePacket.Entry entry : packet.entries()) {
+            UUID uuid = entry.profileId();
             String joining = entry.profile().name();
-            if (joining.equalsIgnoreCase(localName)) continue;
+
+            boolean isNew = knownPlayers.add(uuid); // returns false if already known
+            if (!isNew) continue;
+            if (joining == null || joining.equalsIgnoreCase(localName)) continue;
 
             if (FriendManager.isFriend(joining)) {
                 mc.execute(() -> mc.player.sendSystemMessage(
@@ -66,6 +69,8 @@ public class PlayerJoinMixin {
         String localName = mc.player.getName().getString();
 
         for (UUID uuid : packet.profileIds()) {
+            knownPlayers.remove(uuid);
+
             mc.getConnection().getOnlinePlayers().stream()
                     .filter(info -> info.getProfile().id().equals(uuid))
                     .findFirst()
