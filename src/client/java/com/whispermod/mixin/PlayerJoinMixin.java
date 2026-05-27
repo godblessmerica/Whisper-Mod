@@ -1,11 +1,11 @@
 package com.whispermod.mixin;
 
-import com.mojang.authlib.GameProfile;
 import com.whispermod.friends.FriendManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundLoginPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import org.spongepowered.asm.mixin.Mixin;
@@ -23,24 +23,30 @@ public class PlayerJoinMixin {
     private static final Map<String, Long> recentLeave = new HashMap<>();
     private static final long DEDUPE_MS = 1000;
 
-    @Inject(method = "handlePlayerInfoUpdate", at = @At("HEAD"))
+    // Timestamp of when we joined the server — used to suppress the initial bulk player list sync
+    private static long serverJoinTime = 0;
+    private static final long JOIN_GRACE_MS = 3000;
+
+    @Inject(method = "handleLogin", at = @At("TAIL"))
+    private void onLogin(ClientboundLoginPacket packet, CallbackInfo ci) {
+        serverJoinTime = System.currentTimeMillis();
+    }
+
+    @Inject(method = "handlePlayerInfoUpdate", at = @At("TAIL"))
     private void onPlayerInfoUpdate(ClientboundPlayerInfoUpdatePacket packet, CallbackInfo ci) {
         if (!packet.actions().contains(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER)) return;
 
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.getConnection() == null) return;
 
+        // Suppress notifications during the initial bulk sync right after joining
+        if (System.currentTimeMillis() - serverJoinTime < JOIN_GRACE_MS) return;
+
         String localName = mc.player.getName().getString();
 
         for (ClientboundPlayerInfoUpdatePacket.Entry entry : packet.entries()) {
             String joining = entry.profile().name();
             if (joining.equalsIgnoreCase(localName)) continue;
-
-            // Skip players already online — this is the initial bulk sync on join, not a real join event
-            UUID uuid = entry.profileId();
-            boolean alreadyOnline = mc.getConnection().getOnlinePlayers().stream()
-                    .anyMatch(info -> info.getProfile().id().equals(uuid));
-            if (alreadyOnline) continue;
 
             if (FriendManager.isFriend(joining)) {
                 mc.execute(() -> mc.player.sendSystemMessage(
