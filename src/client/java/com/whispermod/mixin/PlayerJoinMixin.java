@@ -55,7 +55,7 @@ public class PlayerJoinMixin {
                 mc.execute(() -> mc.player.sendSystemMessage(
                         Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
                                 .append(Component.literal(joining).withStyle(ChatFormatting.AQUA))
-                                .append(Component.literal(" joined the server.").withStyle(ChatFormatting.GREEN))
+                                .append(Component.literal(" is online on this server.").withStyle(ChatFormatting.GREEN))
                 ));
             }
         }
