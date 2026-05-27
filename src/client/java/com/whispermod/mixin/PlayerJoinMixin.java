@@ -5,7 +5,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ClientboundLoginPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,9 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 @Mixin(ClientPacketListener.class)
@@ -24,15 +21,6 @@ public class PlayerJoinMixin {
 
     private static final Map<String, Long> recentLeave = new HashMap<>();
     private static final long DEDUPE_MS = 1000;
-
-    // Track UUIDs we've already seen — any UUID in this set is pre-existing, not a new join
-    private static final Set<UUID> knownPlayers = new HashSet<>();
-
-    @Inject(method = "handleLogin", at = @At("TAIL"))
-    private void onLogin(ClientboundLoginPacket packet, CallbackInfo ci) {
-        // Fresh server connection — clear known player tracking
-        knownPlayers.clear();
-    }
 
     @Inject(method = "handlePlayerInfoUpdate", at = @At("TAIL"))
     private void onPlayerInfoUpdate(ClientboundPlayerInfoUpdatePacket packet, CallbackInfo ci) {
@@ -44,11 +32,7 @@ public class PlayerJoinMixin {
         String localName = mc.player.getName().getString();
 
         for (ClientboundPlayerInfoUpdatePacket.Entry entry : packet.entries()) {
-            UUID uuid = entry.profileId();
             String joining = entry.profile().name();
-
-            boolean isNew = knownPlayers.add(uuid); // returns false if already known
-            if (!isNew) continue;
             if (joining == null || joining.equalsIgnoreCase(localName)) continue;
 
             if (FriendManager.isFriend(joining)) {
@@ -69,8 +53,6 @@ public class PlayerJoinMixin {
         String localName = mc.player.getName().getString();
 
         for (UUID uuid : packet.profileIds()) {
-            knownPlayers.remove(uuid);
-
             mc.getConnection().getOnlinePlayers().stream()
                     .filter(info -> info.getProfile().id().equals(uuid))
                     .findFirst()
