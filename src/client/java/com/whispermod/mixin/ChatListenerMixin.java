@@ -263,6 +263,7 @@ public class ChatListenerMixin {
         // --- EM session request ---
         if (MessageCrypto.isRequest(raw)) {
             if (!FriendManager.isFriend(sender)) { ci.cancel(); return; }
+            if (FriendManager.isMutedAll() || FriendManager.isMuted(sender)) { ci.cancel(); return; }
             SessionManager.addIncoming(sender);
             mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.AMETHYST_BLOCK_CHIME, 1.0f));
             mc.player.sendSystemMessage(
