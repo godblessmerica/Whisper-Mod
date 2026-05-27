@@ -72,6 +72,17 @@ public class PlayerJoinMixin {
                     .ifPresent(info -> {
                         String leaving = info.getProfile().name();
                         if (leaving.equalsIgnoreCase(localName)) return;
+
+                        // End EM session if our partner disconnects
+                        if (leaving.equalsIgnoreCase(com.whispermod.WhisperMod.getEmTarget())) {
+                            com.whispermod.WhisperMod.exitAllSilent();
+                            mc.execute(() -> mc.player.sendSystemMessage(
+                                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                            .append(Component.literal(leaving).withStyle(ChatFormatting.AQUA))
+                                            .append(Component.literal(" disconnected — encrypted session ended.").withStyle(ChatFormatting.RED))
+                            ));
+                        }
+
                         if (FriendManager.isFriend(leaving)) {
                             long now = System.currentTimeMillis();
                             Long last = recentLeave.get(leaving.toLowerCase());
