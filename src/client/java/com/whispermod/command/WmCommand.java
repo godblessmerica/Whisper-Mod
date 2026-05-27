@@ -136,13 +136,13 @@ public class WmCommand {
                             }
 
                             boolean wasInEm = WhisperMod.getEmTarget() != null;
-                            boolean wasInDm = WhisperMod.getDmTarget() != null;
+                            boolean wasInSession = WhisperMod.getDmTarget() != null || wasInEm;
                             if (wasInEm) WhisperMod.exitAll(); // sends WMEND to EM partner
                             ctx.getSource().sendFeedback(
                                     Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
-                                            .append(Component.literal(wasInDm || wasInEm ? "Switched to " : "You are now chatting with ").withStyle(ChatFormatting.GREEN))
+                                            .append(Component.literal(wasInSession ? "Switched to " : "You are now chatting with ").withStyle(ChatFormatting.GREEN))
                                             .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
-                                            .append(Component.literal(wasInDm || wasInEm ? "." : ".").withStyle(ChatFormatting.GREEN))
+                                            .append(Component.literal(".").withStyle(ChatFormatting.GREEN))
                             );
                             WhisperMod.setDmTarget(player);
                             return 1;
