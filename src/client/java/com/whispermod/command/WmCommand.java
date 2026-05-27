@@ -19,8 +19,17 @@ import net.minecraft.network.chat.Style;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class WmCommand {
+
+    private static final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "whispermod-scheduler");
+        t.setDaemon(true);
+        return t;
+    });
 
     public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
         LiteralArgumentBuilder<FabricClientCommandSource> wm = ClientCommands.literal("wm");
@@ -29,22 +38,31 @@ public class WmCommand {
         wm.then(ClientCommands.literal("help")
                 .executes(ctx -> {
                     ctx.getSource().sendFeedback(Component.literal("--- Whisper Mod Commands ---").withStyle(ChatFormatting.AQUA));
-                    sendClickable(ctx.getSource(), "/wm dm <player>",       "Start an unencrypted DM session",                  ChatFormatting.YELLOW);
-                    sendClickable(ctx.getSource(), "/wm em <player>",       "Send an encrypted session request (friends only)", ChatFormatting.GREEN);
+                    // Chat
+                    sendClickable(ctx.getSource(), "/wm dm <player>",       "Start a DM session with a player",                 ChatFormatting.YELLOW);
+                    sendClickable(ctx.getSource(), "/wm em <player>",       "Start an encrypted session (friends only)",        ChatFormatting.GREEN);
+                    sendClickable(ctx.getSource(), "/wm reply <player>",    "Send a one-off reply without starting a session",  ChatFormatting.YELLOW);
+                    sendClickable(ctx.getSource(), "/wm back",              "Return to public chat / cancel reply",             ChatFormatting.YELLOW);
+                    // Friends
                     sendClickable(ctx.getSource(), "/wm friend <player>",   "Send a friend request",                            ChatFormatting.AQUA);
                     sendClickable(ctx.getSource(), "/wm unfriend <player>", "Remove a friend",                                  ChatFormatting.RED);
+                    sendClickable(ctx.getSource(), "/wm accept <player>",   "Accept a friend or EM request",                    ChatFormatting.GREEN);
+                    sendClickable(ctx.getSource(), "/wm decline <player>",  "Decline a friend or EM request",                   ChatFormatting.RED);
                     sendClickable(ctx.getSource(), "/wm friends",           "View your friend list",                            ChatFormatting.AQUA);
-                    sendClickable(ctx.getSource(), "/wm pending",           "View pending outgoing friend requests",            ChatFormatting.YELLOW);
+                    sendClickable(ctx.getSource(), "/wm pending",           "View outgoing friend requests",                    ChatFormatting.YELLOW);
                     sendClickable(ctx.getSource(), "/wm status",            "See which friends are online",                     ChatFormatting.AQUA);
+                    // Mute
+                    sendClickable(ctx.getSource(), "/wm mute",              "Mute all incoming requests",                       ChatFormatting.RED);
+                    sendClickable(ctx.getSource(), "/wm mute <player>",     "Mute incoming requests from a specific player",    ChatFormatting.RED);
+                    sendClickable(ctx.getSource(), "/wm unmute",            "Unmute all incoming requests",                     ChatFormatting.YELLOW);
+                    sendClickable(ctx.getSource(), "/wm unmute <player>",   "Unmute a specific player",                         ChatFormatting.YELLOW);
                     sendClickable(ctx.getSource(), "/wm muted",             "View muted players and global mute status",        ChatFormatting.YELLOW);
-                    sendClickable(ctx.getSource(), "/wm mute",              "Toggle muting all incoming requests",              ChatFormatting.RED);
-                    sendClickable(ctx.getSource(), "/wm mute <player>",    "Mute incoming requests from a specific player",    ChatFormatting.RED);
-                    sendClickable(ctx.getSource(), "/wm unmute",           "Unmute all incoming requests",                     ChatFormatting.YELLOW);
-                    sendClickable(ctx.getSource(), "/wm unmute <player>",  "Unmute incoming requests from a specific player",  ChatFormatting.YELLOW);
-                    sendClickable(ctx.getSource(), "/wm block <player>",   "Block someone from sending you requests",          ChatFormatting.RED);
-                    sendClickable(ctx.getSource(), "/wm unblock <player>",  "Unblock someone",                                 ChatFormatting.YELLOW);
-                    sendClickable(ctx.getSource(), "/wm back",              "Return to public chat",                           ChatFormatting.YELLOW);
-                    sendClickable(ctx.getSource(), "/wm clearconfig",       "Clear all saved friends and blocked players",      ChatFormatting.RED);
+                    // Block
+                    sendClickable(ctx.getSource(), "/wm block <player>",    "Block someone from sending you requests",          ChatFormatting.RED);
+                    sendClickable(ctx.getSource(), "/wm unblock <player>",  "Unblock someone",                                  ChatFormatting.YELLOW);
+                    sendClickable(ctx.getSource(), "/wm blocked",           "View your blocked players",                        ChatFormatting.YELLOW);
+                    // Misc
+                    sendClickable(ctx.getSource(), "/wm clearconfig",       "Clear all saved data",                             ChatFormatting.RED);
                     ctx.getSource().sendFeedback(Component.literal("Note: Friend list is stored locally — reinstalling the mod will clear it.").withStyle(ChatFormatting.DARK_GRAY));
                     return 1;
                 })
@@ -53,7 +71,13 @@ public class WmCommand {
         // /wm back
         wm.then(ClientCommands.literal("back")
                 .executes(ctx -> {
-                    if (WhisperMod.getDmTarget() == null && WhisperMod.getEmTarget() == null) {
+                    if (WhisperMod.getReTarget() != null) {
+                        WhisperMod.clearReTarget();
+                        ctx.getSource().sendFeedback(
+                                Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                        .append(Component.literal("Reply cancelled.").withStyle(ChatFormatting.GRAY))
+                        );
+                    } else if (WhisperMod.getDmTarget() == null && WhisperMod.getEmTarget() == null) {
                         ctx.getSource().sendFeedback(Component.literal("You're already in public chat.").withStyle(ChatFormatting.GRAY));
                     } else {
                         WhisperMod.exitAll();
@@ -61,6 +85,18 @@ public class WmCommand {
                     }
                     return 1;
                 })
+        );
+
+        // /wm reply <player>
+        wm.then(ClientCommands.literal("reply")
+                .then(ClientCommands.argument("player", StringArgumentType.word())
+                        .suggests((ctx, builder) -> suggestPlayers(builder))
+                        .executes(ctx -> {
+                            String player = StringArgumentType.getString(ctx, "player");
+                            WhisperMod.setReTarget(player);
+                            return 1;
+                        })
+                )
         );
 
         // /wm dm <player>
@@ -99,11 +135,14 @@ public class WmCommand {
                                 return 1;
                             }
 
-                            String current = WhisperMod.getDmTarget();
+                            boolean wasInEm = WhisperMod.getEmTarget() != null;
+                            boolean wasInDm = WhisperMod.getDmTarget() != null;
+                            if (wasInEm) WhisperMod.exitAll(); // sends WMEND to EM partner
                             ctx.getSource().sendFeedback(
-                                    Component.literal(current != null ? "[DM] Switched to " : "[DM] Now chatting with ").withStyle(ChatFormatting.YELLOW)
+                                    Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                            .append(Component.literal(wasInDm || wasInEm ? "Switched to " : "You are now chatting with ").withStyle(ChatFormatting.GREEN))
                                             .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
-                                            .append(Component.literal(". Use /wm back to exit.").withStyle(ChatFormatting.GRAY))
+                                            .append(Component.literal(wasInDm || wasInEm ? "." : ".").withStyle(ChatFormatting.GREEN))
                             );
                             WhisperMod.setDmTarget(player);
                             return 1;
@@ -186,21 +225,17 @@ public class WmCommand {
                                             .append(Component.literal(". Waiting for them to accept...").withStyle(ChatFormatting.GREEN))
                             );
 
-                            // 30 second timeout
-                            new java.util.Timer().schedule(new java.util.TimerTask() {
-                                @Override
-                                public void run() {
-                                    if (SessionManager.hasOutgoing(player)) {
-                                        SessionManager.removeOutgoing(player);
-                                        mc.execute(() -> mc.player.sendSystemMessage(
-                                                Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
-                                                        .append(Component.literal("No response from ").withStyle(ChatFormatting.RED))
-                                                        .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
-                                                        .append(Component.literal(" — they may not have the mod installed.").withStyle(ChatFormatting.RED))
-                                        ));
-                                    }
+                            SCHEDULER.schedule(() -> {
+                                if (SessionManager.hasOutgoing(player)) {
+                                    SessionManager.removeOutgoing(player);
+                                    mc.execute(() -> mc.player.sendSystemMessage(
+                                            Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                    .append(Component.literal("No response from ").withStyle(ChatFormatting.RED))
+                                                    .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
+                                                    .append(Component.literal(" — they may not have the mod installed.").withStyle(ChatFormatting.RED))
+                                    ));
                                 }
-                            }, 30_000);
+                            }, 30, TimeUnit.SECONDS);
 
                             return 1;
                         })
@@ -305,9 +340,9 @@ public class WmCommand {
 
                             ctx.getSource().sendFeedback(
                                     Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
-                                            .append(Component.literal("No pending request from ").withStyle(ChatFormatting.WHITE))
+                                            .append(Component.literal("No pending request from ").withStyle(ChatFormatting.RED))
                                             .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
-                                            .append(Component.literal(".").withStyle(ChatFormatting.WHITE))
+                                            .append(Component.literal(".").withStyle(ChatFormatting.RED))
                             );
                             return 1;
                         })
@@ -398,21 +433,17 @@ public class WmCommand {
                                             .append(Component.literal(".").withStyle(ChatFormatting.GREEN))
                             );
 
-                            // 60 second timeout
-                            new java.util.Timer().schedule(new java.util.TimerTask() {
-                                @Override
-                                public void run() {
-                                    if (FriendManager.hasOutgoing(player)) {
-                                        FriendManager.removeOutgoing(player);
-                                        mc.execute(() -> mc.player.sendSystemMessage(
-                                                Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
-                                                        .append(Component.literal("Friend request to ").withStyle(ChatFormatting.RED))
-                                                        .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
-                                                        .append(Component.literal(" expired.").withStyle(ChatFormatting.RED))
-                                        ));
-                                    }
+                            SCHEDULER.schedule(() -> {
+                                if (FriendManager.hasOutgoing(player)) {
+                                    FriendManager.removeOutgoing(player);
+                                    mc.execute(() -> mc.player.sendSystemMessage(
+                                            Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                                    .append(Component.literal("Friend request to ").withStyle(ChatFormatting.RED))
+                                                    .append(Component.literal(player).withStyle(ChatFormatting.AQUA))
+                                                    .append(Component.literal(" expired.").withStyle(ChatFormatting.RED))
+                                    ));
                                 }
-                            }, 60_000);
+                            }, 60, TimeUnit.SECONDS);
 
                             return 1;
                         })
@@ -716,9 +747,9 @@ public class WmCommand {
                                 return 1;
                             }
 
-                            Minecraft mc2 = Minecraft.getInstance();
-                            if (mc2.getConnection() != null) {
-                                mc2.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.UNBLOCK_PREFIX, mc2.screen);
+                            Minecraft mc = Minecraft.getInstance();
+                            if (mc.getConnection() != null) {
+                                mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.UNBLOCK_PREFIX, mc.screen);
                             }
                             FriendManager.unblock(player);
                             ctx.getSource().sendFeedback(
@@ -730,6 +761,23 @@ public class WmCommand {
                             return 1;
                         })
                 )
+        );
+
+        // /wm blocked
+        wm.then(ClientCommands.literal("blocked")
+                .executes(ctx -> {
+                    Set<String> blocked = FriendManager.getBlocked();
+                    if (blocked.isEmpty()) {
+                        ctx.getSource().sendFeedback(Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                                .append(Component.literal("You have no blocked players.").withStyle(ChatFormatting.GRAY)));
+                    } else {
+                        ctx.getSource().sendFeedback(Component.literal("--- Blocked Players ---").withStyle(ChatFormatting.RED));
+                        for (String b : blocked) {
+                            ctx.getSource().sendFeedback(Component.literal("• " + b).withStyle(ChatFormatting.WHITE));
+                        }
+                    }
+                    return 1;
+                })
         );
 
         // /wm clearconfig — disabled until offline notification is solved
@@ -786,35 +834,30 @@ public class WmCommand {
         return builder.buildFuture();
     }
 
-    private static CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggestMuted(
-            com.mojang.brigadier.suggestion.SuggestionsBuilder builder) {
+    private static CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggestFromCollection(
+            com.mojang.brigadier.suggestion.SuggestionsBuilder builder, Iterable<String> collection) {
         String remaining = builder.getRemaining().toLowerCase();
-        for (String muted : FriendManager.getMuted()) {
-            if (muted.toLowerCase().startsWith(remaining)) {
-                builder.suggest(muted);
-            }
+        for (String s : collection) {
+            if (s.toLowerCase().startsWith(remaining)) builder.suggest(s);
         }
         return builder.buildFuture();
     }
 
+    private static CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggestMuted(
+            com.mojang.brigadier.suggestion.SuggestionsBuilder builder) {
+        return suggestFromCollection(builder, FriendManager.getMuted());
+    }
+
     private static CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggestBlocked(
             com.mojang.brigadier.suggestion.SuggestionsBuilder builder) {
-        String remaining = builder.getRemaining().toLowerCase();
-        for (String blocked : FriendManager.getBlocked()) {
-            if (blocked.toLowerCase().startsWith(remaining)) {
-                builder.suggest(blocked);
-            }
-        }
-        return builder.buildFuture();
+        return suggestFromCollection(builder, FriendManager.getBlocked());
     }
 
     private static CompletableFuture<com.mojang.brigadier.suggestion.Suggestions> suggestFriends(
             com.mojang.brigadier.suggestion.SuggestionsBuilder builder) {
         String remaining = builder.getRemaining().toLowerCase();
         for (String friend : FriendManager.getFriends()) {
-            if (friend.toLowerCase().startsWith(remaining) && isOnline(friend)) {
-                builder.suggest(friend);
-            }
+            if (friend.toLowerCase().startsWith(remaining) && isOnline(friend)) builder.suggest(friend);
         }
         return builder.buildFuture();
     }
