@@ -113,7 +113,7 @@ public class ChatListenerMixin {
             }
             // Catch vanilla/EssentialsX outgoing echo by prefix — show as [DM] instead
             if (raw.startsWith("You whisper to ") || raw.startsWith("You tell ")
-                    || raw.startsWith("You msg ") || raw.startsWith("To ")) {
+                    || raw.startsWith("You msg ")) {
                 Minecraft mc = Minecraft.getInstance();
                 if (mc.player != null) {
                     String myName = mc.player.getName().getString();
@@ -442,7 +442,11 @@ public class ChatListenerMixin {
         // EssentialsX / common: "[player -> me] message" or "[player -> you] message"
         if (raw.startsWith("[")) {
             int arrowIdx = raw.indexOf(" -> ");
-            if (arrowIdx > 0) return raw.substring(1, arrowIdx);
+            int closeIdx = raw.indexOf("]");
+            if (arrowIdx > 0 && closeIdx > arrowIdx) {
+                // must end with "] message" or "] " pattern
+                return raw.substring(1, arrowIdx);
+            }
         }
 
         // Parentheses variant: "(player -> me) message"
@@ -451,13 +455,14 @@ public class ChatListenerMixin {
             if (arrowIdx > 0) return raw.substring(1, arrowIdx);
         }
 
-        // "From player: message" or "[From player]: message" or "(From player) message"
-        if (raw.startsWith("From ") || raw.startsWith("[From ") || raw.startsWith("(From ")) {
-            String stripped = raw.replaceAll("^[\\[(]?From ", "");
-            int end = stripped.indexOf("]");
-            if (end == -1) end = stripped.indexOf(")");
-            if (end == -1) end = stripped.indexOf(":");
-            if (end > 0) return stripped.substring(0, end).trim();
+        // "From player: message" — must have colon to avoid false positives
+        if (raw.startsWith("From ")) {
+            int colon = raw.indexOf(": ");
+            // player name must be a single word (no spaces) between "From " and ": "
+            if (colon > 5) {
+                String name = raw.substring(5, colon);
+                if (!name.contains(" ")) return name;
+            }
         }
 
         // "[PC] player --> YOU: message"
@@ -476,10 +481,10 @@ public class ChatListenerMixin {
      */
     private static String extractDmSentToken(String raw) {
         if (raw == null) return null;
-        // "You whisper to player: text" / "To player: text"
+        // "You whisper to player: text"
         int colon = raw.indexOf(": ");
         if (colon > 0 && (raw.startsWith("You whisper to ") || raw.startsWith("You tell ")
-                || raw.startsWith("You msg ") || raw.startsWith("To "))) {
+                || raw.startsWith("You msg "))) {
             return raw.substring(colon + 2).trim();
         }
         // "[me -> player] text" or "[me -> player]: text"
