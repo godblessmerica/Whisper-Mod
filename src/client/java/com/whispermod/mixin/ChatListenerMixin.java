@@ -113,7 +113,7 @@ public class ChatListenerMixin {
             }
             // Catch vanilla/EssentialsX outgoing echo by prefix — show as [DM] instead
             if (raw.startsWith("You whisper to ") || raw.startsWith("You tell ")
-                    || raw.startsWith("You msg ")) {
+                    || raw.startsWith("You msg ") || raw.startsWith("To ")) {
                 Minecraft mc = Minecraft.getInstance();
                 if (mc.player != null) {
                     String myName = mc.player.getName().getString();
@@ -476,10 +476,10 @@ public class ChatListenerMixin {
      */
     private static String extractDmSentToken(String raw) {
         if (raw == null) return null;
-        // "You whisper to player: text"
+        // "You whisper to player: text" / "To player: text"
         int colon = raw.indexOf(": ");
         if (colon > 0 && (raw.startsWith("You whisper to ") || raw.startsWith("You tell ")
-                || raw.startsWith("You msg "))) {
+                || raw.startsWith("You msg ") || raw.startsWith("To "))) {
             return raw.substring(colon + 2).trim();
         }
         // "[me -> player] text" or "[me -> player]: text"
