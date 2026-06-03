@@ -19,6 +19,7 @@ public class WhisperMod implements ClientModInitializer {
 
     private static String dmTarget = null;
     private static String emTarget = null;
+    private static String reTarget = null;
 
     /** Tracks WM tokens we sent so echoes can be detected and cancelled. */
     private static final Set<String> sentTokens = Collections.synchronizedSet(new HashSet<>());
@@ -40,6 +41,22 @@ public class WhisperMod implements ClientModInitializer {
 
         ClientSendMessageEvents.ALLOW_CHAT.register(message -> {
             Minecraft mc = Minecraft.getInstance();
+
+            // Reply mode — send one whisper then clear
+            if (reTarget != null) {
+                String text = message.trim();
+                if (text.isEmpty()) return false;
+                mc.getConnection().sendUnattendedCommand("w " + reTarget + " " + text, mc.screen);
+                trackSent("DM:" + text);
+                String myName = mc.player.getName().getString();
+                mc.player.sendSystemMessage(
+                        Component.literal("[DM] ").withStyle(ChatFormatting.YELLOW)
+                                .append(Component.literal(myName + ": ").withStyle(ChatFormatting.AQUA))
+                                .append(Component.literal(text).withStyle(ChatFormatting.WHITE))
+                );
+                reTarget = null;
+                return false;
+            }
 
             if (emTarget != null) {
                 String prefix = "[EM to " + emTarget + "] ";
@@ -117,11 +134,17 @@ public class WhisperMod implements ClientModInitializer {
         return emTarget;
     }
 
+    // --- Reply (one-shot) ---
+    public static void setReTarget(String player) { reTarget = player; }
+    public static String getReTarget() { return reTarget; }
+    public static void clearReTarget() { reTarget = null; }
+
     // --- Exit without notifying the other player (used when receiving WMEND) ---
     public static void exitAllSilent() {
         if (emTarget != null) SessionManager.remove(emTarget);
         dmTarget = null;
         emTarget = null;
+        reTarget = null;
     }
 
     // --- /back — exit everything ---
@@ -137,9 +160,11 @@ public class WhisperMod implements ClientModInitializer {
         }
         dmTarget = null;
         emTarget = null;
+        reTarget = null;
     }
 
     public static String getChatPrefix() {
+        if (reTarget != null) return "[Re to " + reTarget + "] ";
         if (dmTarget != null) return "[DM to " + dmTarget + "] ";
         if (emTarget != null) return "[EM to " + emTarget + "] ";
         return null;

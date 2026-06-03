@@ -63,11 +63,34 @@ public class ChatListenerMixin {
         if (!MessageCrypto.isAnyProtocol(raw)) {
             Minecraft mc = Minecraft.getInstance();
             boolean isFriend = FriendManager.isFriend(sender);
-            mc.player.sendSystemMessage(
-                    Component.literal(isFriend ? "[DM ★] " : "[DM] ").withStyle(ChatFormatting.YELLOW)
-                            .append(Component.literal(sender + ": ").withStyle(ChatFormatting.AQUA))
-                            .append(Component.literal(raw).withStyle(ChatFormatting.WHITE))
-            );
+            String dmTarget = WhisperMod.getDmTarget();
+            String emTarget = WhisperMod.getEmTarget();
+            boolean isPartner = sender.equalsIgnoreCase(dmTarget) || sender.equalsIgnoreCase(emTarget);
+
+            if (isPartner) {
+                mc.player.sendSystemMessage(
+                        Component.literal(isFriend ? "[DM ★] " : "[DM] ").withStyle(ChatFormatting.YELLOW)
+                                .append(Component.literal(sender + ": ").withStyle(ChatFormatting.AQUA))
+                                .append(Component.literal(raw).withStyle(ChatFormatting.WHITE))
+                );
+            } else {
+                boolean inSession = dmTarget != null || emTarget != null;
+                mc.player.sendSystemMessage(
+                        Component.literal(isFriend ? "[DM ★] " : "[DM] ").withStyle(ChatFormatting.YELLOW)
+                                .append(Component.literal(sender + ": ").withStyle(ChatFormatting.AQUA))
+                                .append(Component.literal(raw).withStyle(ChatFormatting.WHITE))
+                                .append(Component.literal("  ").withStyle(ChatFormatting.DARK_GRAY))
+                                .append(Component.literal("[Reply]").withStyle(Style.EMPTY
+                                        .withColor(ChatFormatting.GREEN).withBold(true)
+                                        .withClickEvent(new ClickEvent.RunCommand("/wm reply " + sender))
+                                        .withHoverEvent(new HoverEvent.ShowText(Component.literal("Reply once")))))
+                                .append(Component.literal(" ").withStyle(ChatFormatting.DARK_GRAY))
+                                .append(Component.literal(inSession ? "[Switch Chat]" : "[Start Session]").withStyle(Style.EMPTY
+                                        .withColor(ChatFormatting.YELLOW).withBold(true)
+                                        .withClickEvent(new ClickEvent.RunCommand("/wm dm " + sender))
+                                        .withHoverEvent(new HoverEvent.ShowText(Component.literal(inSession ? "Switch to this chat" : "Start a DM session")))))
+                );
+            }
             ci.cancel();
             return;
         }
@@ -80,16 +103,28 @@ public class ChatListenerMixin {
     private void onSystemMessage(Component message, boolean overlay, CallbackInfo ci) {
         String raw = message.getString();
 
-        // Suppress outgoing DM echo in any format ("You whisper to player: ..." etc.)
-        if (raw != null && WhisperMod.getDmTarget() != null) {
+        // Suppress outgoing echo in any format — always, not just when in a session
+        if (raw != null) {
+            // Check token cache first (catches DM session echoes)
             String dmToken = extractDmSentToken(raw);
             if (dmToken != null && WhisperMod.consumeSent("DM:" + dmToken)) {
                 ci.cancel();
                 return;
             }
-            // Also catch by outgoing format prefix regardless of text tracking
+            // Catch vanilla/EssentialsX outgoing echo by prefix — show as [DM] instead
             if (raw.startsWith("You whisper to ") || raw.startsWith("You tell ")
                     || raw.startsWith("You msg ")) {
+                Minecraft mc = Minecraft.getInstance();
+                if (mc.player != null) {
+                    String myName = mc.player.getName().getString();
+                    int colon = raw.indexOf(": ");
+                    String text = colon > 0 ? raw.substring(colon + 2).trim() : raw;
+                    mc.player.sendSystemMessage(
+                            Component.literal("[DM] ").withStyle(ChatFormatting.YELLOW)
+                                    .append(Component.literal(myName + ": ").withStyle(ChatFormatting.AQUA))
+                                    .append(Component.literal(text).withStyle(ChatFormatting.WHITE))
+                    );
+                }
                 ci.cancel();
                 return;
             }
@@ -128,12 +163,38 @@ public class ChatListenerMixin {
         // --- Format all incoming whispers as [DM] ---
         if (!MessageCrypto.isAnyProtocol(raw)) {
             String text = extractMessageText(raw, sender);
+            String display = text != null ? text : raw;
             boolean isFriend = FriendManager.isFriend(sender);
-            mc.player.sendSystemMessage(
-                    Component.literal(isFriend ? "[DM ★] " : "[DM] ").withStyle(ChatFormatting.YELLOW)
-                            .append(Component.literal(sender + ": ").withStyle(ChatFormatting.AQUA))
-                            .append(Component.literal(text != null ? text : raw).withStyle(ChatFormatting.WHITE))
-            );
+            String dmTarget = WhisperMod.getDmTarget();
+            String emTarget = WhisperMod.getEmTarget();
+            boolean isPartner = sender.equalsIgnoreCase(dmTarget) || sender.equalsIgnoreCase(emTarget);
+
+            if (isPartner) {
+                // Already in a session with this person — just show the message
+                mc.player.sendSystemMessage(
+                        Component.literal(isFriend ? "[DM ★] " : "[DM] ").withStyle(ChatFormatting.YELLOW)
+                                .append(Component.literal(sender + ": ").withStyle(ChatFormatting.AQUA))
+                                .append(Component.literal(display).withStyle(ChatFormatting.WHITE))
+                );
+            } else {
+                // Not in a session — show with [Reply] and [Start Session]/[Switch Chat] buttons
+                boolean inSession = dmTarget != null || emTarget != null;
+                mc.player.sendSystemMessage(
+                        Component.literal(isFriend ? "[DM ★] " : "[DM] ").withStyle(ChatFormatting.YELLOW)
+                                .append(Component.literal(sender + ": ").withStyle(ChatFormatting.AQUA))
+                                .append(Component.literal(display).withStyle(ChatFormatting.WHITE))
+                                .append(Component.literal("  ").withStyle(ChatFormatting.DARK_GRAY))
+                                .append(Component.literal("[Reply]").withStyle(Style.EMPTY
+                                        .withColor(ChatFormatting.GREEN).withBold(true)
+                                        .withClickEvent(new ClickEvent.RunCommand("/wm reply " + sender))
+                                        .withHoverEvent(new HoverEvent.ShowText(Component.literal("Reply once")))))
+                                .append(Component.literal(" ").withStyle(ChatFormatting.DARK_GRAY))
+                                .append(Component.literal(inSession ? "[Switch Chat]" : "[Start Session]").withStyle(Style.EMPTY
+                                        .withColor(ChatFormatting.YELLOW).withBold(true)
+                                        .withClickEvent(new ClickEvent.RunCommand("/wm dm " + sender))
+                                        .withHoverEvent(new HoverEvent.ShowText(Component.literal(inSession ? "Switch to this chat" : "Start a DM session")))))
+                );
+            }
             ci.cancel();
             return;
         }
