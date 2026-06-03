@@ -236,7 +236,7 @@ public class ChatListenerMixin {
                     public void run() {
                         mc.execute(() -> {
                             if (mc.getConnection() != null) {
-                                mc.getConnection().sendUnattendedCommand("w " + blockedSender + " " + MessageCrypto.FRIEND_BLOCKED_PREFIX, null);
+                                mc.getConnection().sendUnattendedCommand("msg " + blockedSender + " " + MessageCrypto.FRIEND_BLOCKED_PREFIX, null);
                             }
                         });
                     }
@@ -395,7 +395,7 @@ public class ChatListenerMixin {
                     SessionManager.removeOutgoing(sender);
                     session.markInitiated();
                     String kxReply = MessageCrypto.KX_PREFIX + session.getPublicKeyBase64();
-                    mc.execute(() -> mc.getConnection().sendUnattendedCommand("w " + sender + " " + kxReply, mc.screen));
+                    mc.execute(() -> mc.getConnection().sendUnattendedCommand("msg " + sender + " " + kxReply, mc.screen));
                 }
 
                 WhisperMod.setEmTarget(sender);

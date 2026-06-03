@@ -46,7 +46,7 @@ public class WhisperMod implements ClientModInitializer {
             if (reTarget != null) {
                 String text = message.trim();
                 if (text.isEmpty()) return false;
-                mc.getConnection().sendUnattendedCommand("w " + reTarget + " " + text, mc.screen);
+                mc.getConnection().sendUnattendedCommand("msg " + reTarget + " " + text, mc.screen);
                 trackSent("DM:" + text);
                 String myName = mc.player.getName().getString();
                 mc.player.sendSystemMessage(
@@ -71,7 +71,7 @@ public class WhisperMod implements ClientModInitializer {
                     // Track echo so we can cancel it when it comes back
                     trackSent(encrypted);
 
-                    mc.getConnection().sendUnattendedCommand("w " + emTarget + " " + encrypted, mc.screen);
+                    mc.getConnection().sendUnattendedCommand("msg " + emTarget + " " + encrypted, mc.screen);
 
                     // Show own message immediately — don't wait for echo
                     String myName = mc.player.getName().getString();
@@ -95,7 +95,7 @@ public class WhisperMod implements ClientModInitializer {
                 text = text.trim();
                 if (text.isEmpty()) return false;
 
-                mc.getConnection().sendUnattendedCommand("w " + dmTarget + " " + text, mc.screen);
+                mc.getConnection().sendUnattendedCommand("msg " + dmTarget + " " + text, mc.screen);
 
                 // Track sent text so we can cancel the server echo
                 trackSent("DM:" + text);
@@ -154,7 +154,7 @@ public class WhisperMod implements ClientModInitializer {
             if (mc.getConnection() != null) {
                 String endMsg = MessageCrypto.END_PREFIX;
                 trackSent(endMsg);
-                mc.getConnection().sendUnattendedCommand("w " + emTarget + " " + endMsg, mc.screen);
+                mc.getConnection().sendUnattendedCommand("msg " + emTarget + " " + endMsg, mc.screen);
             }
             SessionManager.remove(emTarget);
         }

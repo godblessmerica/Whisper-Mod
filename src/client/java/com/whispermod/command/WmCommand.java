@@ -216,7 +216,7 @@ public class WmCommand {
                             }
 
                             SessionManager.addOutgoing(player);
-                            mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.REQ_PREFIX, mc.screen);
+                            mc.getConnection().sendUnattendedCommand("msg " + player + " " + MessageCrypto.REQ_PREFIX, mc.screen);
 
                             ctx.getSource().sendFeedback(
                                     Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
@@ -268,7 +268,7 @@ public class WmCommand {
                                 WhisperMod.setEmTarget(player);
                                 DmSession session = SessionManager.getOrCreate(player);
                                 String kxMessage = MessageCrypto.KX_PREFIX + session.getPublicKeyBase64();
-                                mc.getConnection().sendUnattendedCommand("w " + player + " " + kxMessage, mc.screen);
+                                mc.getConnection().sendUnattendedCommand("msg " + player + " " + kxMessage, mc.screen);
                                 return 1;
                             }
 
@@ -278,7 +278,7 @@ public class WmCommand {
                                 FriendManager.addFriend(player);
                                 String myName = mc.player != null ? mc.player.getName().getString() : "you";
                                 // Notify sender via protocol message
-                                mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.FRIEND_ACCEPT_PREFIX + myName, mc.screen);
+                                mc.getConnection().sendUnattendedCommand("msg " + player + " " + MessageCrypto.FRIEND_ACCEPT_PREFIX + myName, mc.screen);
                                 ctx.getSource().sendFeedback(
                                         Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
                                                 .append(Component.literal("You and ").withStyle(ChatFormatting.GREEN))
@@ -314,7 +314,7 @@ public class WmCommand {
                             // Decline EM request
                             if (SessionManager.hasIncoming(player)) {
                                 SessionManager.removeIncoming(player);
-                                mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.DECL_PREFIX, mc.screen);
+                                mc.getConnection().sendUnattendedCommand("msg " + player + " " + MessageCrypto.DECL_PREFIX, mc.screen);
                                 ctx.getSource().sendFeedback(
                                         Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
                                                 .append(Component.literal("You declined ").withStyle(ChatFormatting.RED))
@@ -328,7 +328,7 @@ public class WmCommand {
                             if (FriendManager.hasIncoming(player)) {
                                 FriendManager.removeIncoming(player);
                                 String myName = mc.player != null ? mc.player.getName().getString() : "you";
-                                mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.FRIEND_DECLINE_PREFIX + myName, mc.screen);
+                                mc.getConnection().sendUnattendedCommand("msg " + player + " " + MessageCrypto.FRIEND_DECLINE_PREFIX + myName, mc.screen);
                                 ctx.getSource().sendFeedback(
                                         Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
                                                 .append(Component.literal("You declined ").withStyle(ChatFormatting.RED))
@@ -412,7 +412,7 @@ public class WmCommand {
                                 FriendManager.removeIncoming(player);
                                 FriendManager.addFriend(player);
                                 String myName = mc.player != null ? mc.player.getName().getString() : "you";
-                                mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.FRIEND_ACCEPT_PREFIX + myName, mc.screen);
+                                mc.getConnection().sendUnattendedCommand("msg " + player + " " + MessageCrypto.FRIEND_ACCEPT_PREFIX + myName, mc.screen);
                                 ctx.getSource().sendFeedback(
                                         Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
                                                 .append(Component.literal("You and ").withStyle(ChatFormatting.GREEN))
@@ -424,7 +424,7 @@ public class WmCommand {
 
                             FriendManager.addOutgoing(player);
                             String myName = mc.player != null ? mc.player.getName().getString() : "you";
-                            mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.FRIEND_REQ_PREFIX + myName, mc.screen);
+                            mc.getConnection().sendUnattendedCommand("msg " + player + " " + MessageCrypto.FRIEND_REQ_PREFIX + myName, mc.screen);
 
                             ctx.getSource().sendFeedback(
                                     Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
@@ -495,7 +495,7 @@ public class WmCommand {
 
                             // Notify them
                             String myName = mc.player != null ? mc.player.getName().getString() : "you";
-                            mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.UNFRIEND_PREFIX + myName, mc.screen);
+                            mc.getConnection().sendUnattendedCommand("msg " + player + " " + MessageCrypto.UNFRIEND_PREFIX + myName, mc.screen);
 
                             ctx.getSource().sendFeedback(
                                     Component.literal("[WM] ").withStyle(ChatFormatting.LIGHT_PURPLE)
@@ -711,9 +711,9 @@ public class WmCommand {
                                     WhisperMod.exitAll();
                                 }
                                 String myName = mc.player != null ? mc.player.getName().getString() : "";
-                                mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.UNFRIEND_PREFIX + myName, mc.screen);
+                                mc.getConnection().sendUnattendedCommand("msg " + player + " " + MessageCrypto.UNFRIEND_PREFIX + myName, mc.screen);
                             }
-                            mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.FRIEND_BLOCKED_PREFIX, mc.screen);
+                            mc.getConnection().sendUnattendedCommand("msg " + player + " " + MessageCrypto.FRIEND_BLOCKED_PREFIX, mc.screen);
 
                             FriendManager.block(player);
                             ctx.getSource().sendFeedback(
@@ -749,7 +749,7 @@ public class WmCommand {
 
                             Minecraft mc = Minecraft.getInstance();
                             if (mc.getConnection() != null) {
-                                mc.getConnection().sendUnattendedCommand("w " + player + " " + MessageCrypto.UNBLOCK_PREFIX, mc.screen);
+                                mc.getConnection().sendUnattendedCommand("msg " + player + " " + MessageCrypto.UNBLOCK_PREFIX, mc.screen);
                             }
                             FriendManager.unblock(player);
                             ctx.getSource().sendFeedback(
